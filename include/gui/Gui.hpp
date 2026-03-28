@@ -15,6 +15,7 @@ class Gui
   private:
     void drawMenuBar();
     void drawToolbar();
+    void drawColorPicker(Viewport &viewport);
     void drawInspector();
     void drawConsole();
 
