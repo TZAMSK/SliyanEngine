@@ -17,9 +17,10 @@ const char *vertexShaderSource = "#version 330 core\n"
 
 const char *fragmentShaderSource = "#version 330 core\n"
                                    "out vec4 FragColor;\n"
+                                   "uniform vec4 uColor;"
                                    "void main()\n"
                                    "{\n"
-                                   "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                   "    FragColor = uColor;\n"
                                    "}\n";
 
 unsigned int createShader(unsigned int type, const char *source)
@@ -80,22 +81,27 @@ bool Viewport::init()
     return true;
 }
 
+float *Viewport::getClearColor()
+{
+    return clearColor;
+}
+
+float *Viewport::getFragColor()
+{
+    return fragColor;
+}
+
 void Viewport::renderScene()
 {
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    int colorLocation = glGetUniformLocation(shaderProgram, "uColor");
+    glUniform4f(colorLocation, fragColor[0], fragColor[1], fragColor[2], fragColor[3]);
+
     glUseProgram(shaderProgram);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void Viewport::drawImGuiWindow()
-{
-    ImGui::Begin("Viewport");
-    ImGui::Text("This is the viewport panel.");
-    ImGui::ColorEdit3("Background", clearColor);
-    ImGui::End();
 }
 
 void Viewport::shutdown()

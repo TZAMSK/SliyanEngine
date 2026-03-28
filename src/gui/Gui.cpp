@@ -37,9 +37,9 @@ void Gui::draw(Viewport &viewport)
 {
     drawMenuBar();
     drawToolbar();
+    drawColorPicker(viewport);
     drawInspector();
     drawConsole();
-    viewport.drawImGuiWindow();
 
     if (showDemoWindow)
     {
@@ -91,6 +91,15 @@ void Gui::drawToolbar()
     ImGui::Button("Rotate");
     ImGui::Button("Scale");
 
+    ImGui::End();
+}
+
+void Gui::drawColorPicker(Viewport &viewport)
+{
+    ImGui::Begin("Viewport");
+    ImGui::Text("This is the viewport panel.");
+    ImGui::ColorEdit3("Background", viewport.getClearColor());
+    ImGui::ColorEdit3("Color", viewport.getFragColor());
     ImGui::End();
 }
 
