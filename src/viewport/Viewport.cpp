@@ -17,7 +17,7 @@ const char *vertexShaderSource = "#version 330 core\n"
 
 const char *fragmentShaderSource = "#version 330 core\n"
                                    "out vec4 FragColor;\n"
-                                   "uniform vec4 uColor;"
+                                   "uniform vec4 uColor;\n"
                                    "void main()\n"
                                    "{\n"
                                    "    FragColor = uColor;\n"
@@ -45,15 +45,13 @@ unsigned int createShader(unsigned int type, const char *source)
 
 bool Viewport::init()
 {
-    float vertices[] = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f};
-
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 9, nullptr, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
@@ -73,6 +71,7 @@ bool Viewport::init()
     {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "Program linking failed:\n" << infoLog << std::endl;
+        return false;
     }
 
     glDeleteShader(vertexShader);
@@ -91,17 +90,40 @@ float *Viewport::getFragColor()
     return fragColor;
 }
 
+void Viewport::addTriangle(float x, float y)
+{
+    triangles.emplace_back(glm::vec3(x, y, 0.0f), glm::vec4(fragColor[0], fragColor[1], fragColor[2], fragColor[3]));
+}
+
 void Viewport::renderScene()
 {
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    int colorLocation = glGetUniformLocation(shaderProgram, "uColor");
-    glUniform4f(colorLocation, fragColor[0], fragColor[1], fragColor[2], fragColor[3]);
-
     glUseProgram(shaderProgram);
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    for (const Triangle &triangle : triangles)
+    {
+        float vertices[] = {
+            triangle.getVertex(0).x + triangle.getPosition().x, triangle.getVertex(0).y + triangle.getPosition().y,
+            triangle.getVertex(0).z + triangle.getPosition().z,
+
+            triangle.getVertex(1).x + triangle.getPosition().x, triangle.getVertex(1).y + triangle.getPosition().y,
+            triangle.getVertex(1).z + triangle.getPosition().z,
+
+            triangle.getVertex(2).x + triangle.getPosition().x, triangle.getVertex(2).y + triangle.getPosition().y,
+            triangle.getVertex(2).z + triangle.getPosition().z};
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+        int colorLocation = glGetUniformLocation(shaderProgram, "uColor");
+        const glm::vec4 &color = triangle.getColor();
+        glUniform4f(colorLocation, color.r, color.g, color.b, color.a);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
 }
 
 void Viewport::shutdown()

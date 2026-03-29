@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(RzhavaRender LANGUAGES C CXX)
+project(SliyanRender LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
@@ -30,6 +30,9 @@ add_executable(test
     src/app/Application.cpp
     src/gui/Gui.cpp
     src/viewport/Viewport.cpp
+    src/scene/shapes/Shape.cpp
+    src/scene/shapes/Triangle.cpp
+    src/scene/commands/Shortcuts.cpp
     src/glad.c
 )
 

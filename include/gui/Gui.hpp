@@ -12,6 +12,9 @@ class Gui
     void endFrame();
     void shutdown();
 
+    void drawAddShape();
+    void setShowAddShape(bool value);
+
   private:
     void drawMenuBar();
     void drawToolbar();
@@ -21,4 +24,5 @@ class Gui
 
   private:
     bool showDemoWindow = true;
+    bool showAddShapeWindow = false;
 };

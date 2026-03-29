@@ -2,6 +2,7 @@
 
 #include "gui/Gui.hpp"
 #include "viewport/Viewport.hpp"
+#include "scene/commands/Shortcuts.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,6 +13,7 @@ namespace
 {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
+    (void)window;
     glViewport(0, 0, width, height);
 }
 
@@ -25,12 +27,27 @@ void processInput(GLFWwindow *window)
 
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
+    (void)mods;
+
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        std::cout << "Mouse pressed" << std::endl;
+        double mouseX = 0.0;
+        double mouseY = 0.0;
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+
+        Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+        if (app)
+        {
+            app->handleMouseClick(mouseX, mouseY);
+        }
     }
 }
 } // namespace
+
+Gui *Application::getGui()
+{
+    return gui;
+}
 
 bool Application::init()
 {
@@ -56,9 +73,11 @@ bool Application::init()
     }
 
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetKeyCallback(window, openShortcut);
 
     glfwSwapInterval(1);
 
@@ -81,6 +100,21 @@ bool Application::init()
     return true;
 }
 
+void Application::handleMouseClick(double mouseX, double mouseY)
+{
+    int width = 0;
+    int height = 0;
+    glfwGetWindowSize(window, &width, &height);
+
+    float ndcX = (2.0f * static_cast<float>(mouseX)) / static_cast<float>(width) - 1.0f;
+    float ndcY = 1.0f - (2.0f * static_cast<float>(mouseY)) / static_cast<float>(height);
+
+    std::cout << "Mouse clicked at screen: (" << mouseX << ", " << mouseY << ")\n";
+    std::cout << "Converted to OpenGL: (" << ndcX << ", " << ndcY << ")\n";
+
+    viewport->addTriangle(ndcX, ndcY);
+}
+
 void Application::loop()
 {
     while (!glfwWindowShouldClose(window))
@@ -91,7 +125,6 @@ void Application::loop()
         gui->beginFrame();
 
         viewport->renderScene();
-
         gui->draw(*viewport);
 
         gui->endFrame();
@@ -106,20 +139,20 @@ void Application::shutdown()
     {
         gui->shutdown();
         delete gui;
-        gui = NULL;
+        gui = nullptr;
     }
 
     if (viewport)
     {
         viewport->shutdown();
         delete viewport;
-        viewport = NULL;
+        viewport = nullptr;
     }
 
     if (window)
     {
         glfwDestroyWindow(window);
-        window = NULL;
+        window = nullptr;
     }
 
     glfwTerminate();

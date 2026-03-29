@@ -18,7 +18,6 @@ void Gui::init(GLFWwindow *window)
     (void)io;
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImGui::StyleColorsDark();
 
@@ -33,6 +32,11 @@ void Gui::beginFrame()
     ImGui::NewFrame();
 }
 
+void Gui::setShowAddShape(bool value)
+{
+    showAddShapeWindow = value;
+}
+
 void Gui::draw(Viewport &viewport)
 {
     drawMenuBar();
@@ -40,6 +44,11 @@ void Gui::draw(Viewport &viewport)
     drawColorPicker(viewport);
     drawInspector();
     drawConsole();
+
+    if (showAddShapeWindow)
+    {
+        drawAddShape();
+    }
 
     if (showDemoWindow)
     {
@@ -114,5 +123,17 @@ void Gui::drawConsole()
 {
     ImGui::Begin("Console");
     ImGui::Text("Logs...");
+    ImGui::End();
+}
+
+void Gui::drawAddShape()
+{
+    ImGui::Begin("Add Shape", &showAddShapeWindow);
+
+    ImGui::Button("Triangle");
+    ImGui::Button("Move");
+    ImGui::Button("Rotate");
+    ImGui::Button("Scale");
+
     ImGui::End();
 }
