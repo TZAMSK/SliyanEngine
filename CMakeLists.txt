@@ -30,6 +30,8 @@ add_executable(test
     src/app/Application.cpp
     src/gui/Gui.cpp
     src/viewport/Viewport.cpp
+    src/viewport/Go3D.cpp
+    src/viewport/GridAxis.cpp
     src/scene/shapes/Shape.cpp
     src/scene/shapes/Triangle.cpp
     src/scene/commands/Shortcuts.cpp

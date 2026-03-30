@@ -1,4 +1,6 @@
 #include "viewport/Viewport.hpp"
+#include "viewport/Go3d.hpp"
+#include "viewport/GridAxis.hpp"
 
 #include <glad/glad.h>
 
@@ -8,17 +10,23 @@ namespace
 {
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
+                                 "layout (location = 1) in vec3 aColor;\n"
+                                 "out vec3 vColor;\n"
+                                 "uniform mat4 model;\n"
+                                 "uniform mat4 view;\n"
+                                 "uniform mat4 proj;\n"
                                  "void main()\n"
                                  "{\n"
-                                 "    gl_Position = vec4(aPos, 1.0f);\n"
+                                 "    vColor = aColor;\n"
+                                 "    gl_Position = proj * view * model * vec4(aPos, 1.0);\n"
                                  "}\n";
 
 const char *fragmentShaderSource = "#version 330 core\n"
+                                   "in vec3 vColor;\n"
                                    "out vec4 FragColor;\n"
-                                   "uniform vec4 uColor;\n"
                                    "void main()\n"
                                    "{\n"
-                                   "    FragColor = uColor;\n"
+                                   "    FragColor = vec4(vColor, 1.0);\n"
                                    "}\n";
 
 unsigned int createShader(unsigned int type, const char *source)
@@ -172,7 +180,7 @@ float *Viewport::getFragColor()
 
 void Viewport::addTriangle(float x, float y)
 {
-    triangles.emplace_back(glm::vec3(x, y, 0.0f), glm::vec4(fragColor[0], fragColor[1], fragColor[2], fragColor[3]));
+    triangles.emplace_back(glm::vec3(x, y, -3.0f), glm::vec4(fragColor[0], fragColor[1], fragColor[2], fragColor[3]));
 }
 
 void Viewport::renderScene()
@@ -185,6 +193,10 @@ void Viewport::renderScene()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
+
+    introduce3D(shaderProgram, framebufferWidth, framebufferHeight);
+    drawGridAxis(shaderProgram);
+
     glBindVertexArray(vao);
 
     for (const Triangle &triangle : triangles)
