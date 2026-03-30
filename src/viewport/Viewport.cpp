@@ -1,7 +1,5 @@
 #include "viewport/Viewport.hpp"
 
-#include "imgui.h"
-
 #include <glad/glad.h>
 
 #include <iostream>
@@ -77,7 +75,89 @@ bool Viewport::init()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    createFramebuffer(1280, 720);
+
     return true;
+}
+
+void Viewport::createFramebuffer(int width, int height)
+{
+    framebufferWidth = width;
+    framebufferHeight = height;
+
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glGenTextures(1, &colorTexture);
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, framebufferWidth, framebufferHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, framebufferWidth, framebufferHeight);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "Framebuffer is not complete!" << std::endl;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Viewport::destroyFramebuffer()
+{
+    if (rbo)
+    {
+        glDeleteRenderbuffers(1, &rbo);
+        rbo = 0;
+    }
+
+    if (colorTexture)
+    {
+        glDeleteTextures(1, &colorTexture);
+        colorTexture = 0;
+    }
+
+    if (fbo)
+    {
+        glDeleteFramebuffers(1, &fbo);
+        fbo = 0;
+    }
+}
+
+void Viewport::resizeFramebuffer(int width, int height)
+{
+    if (width <= 0 || height <= 0)
+    {
+        return;
+    }
+
+    if (width == framebufferWidth && height == framebufferHeight)
+    {
+        return;
+    }
+
+    destroyFramebuffer();
+    createFramebuffer(width, height);
+}
+
+unsigned int Viewport::getColorTexture() const
+{
+    return colorTexture;
+}
+
+int Viewport::getFramebufferWidth() const
+{
+    return framebufferWidth;
+}
+
+int Viewport::getFramebufferHeight() const
+{
+    return framebufferHeight;
 }
 
 float *Viewport::getClearColor()
@@ -97,8 +177,12 @@ void Viewport::addTriangle(float x, float y)
 
 void Viewport::renderScene()
 {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, framebufferWidth, framebufferHeight);
+
+    glEnable(GL_DEPTH_TEST);
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(shaderProgram);
     glBindVertexArray(vao);
@@ -124,10 +208,14 @@ void Viewport::renderScene()
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Viewport::shutdown()
 {
+    destroyFramebuffer();
+
     if (shaderProgram)
     {
         glDeleteProgram(shaderProgram);

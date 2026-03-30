@@ -31,15 +31,34 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
+        Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+        if (!app)
+        {
+            return;
+        }
+
+        Gui *gui = app->getGui();
+        if (!gui)
+        {
+            return;
+        }
+
+        if (!gui->getAddShapeEnabled())
+        {
+            return;
+        }
+
+        if (!gui->isMouseInsideViewport())
+        {
+            return;
+        }
+
         double mouseX = 0.0;
         double mouseY = 0.0;
         glfwGetCursorPos(window, &mouseX, &mouseY);
 
-        Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-        if (app)
-        {
-            app->handleMouseClick(mouseX, mouseY);
-        }
+        app->handleMouseClick(mouseX, mouseY);
+        gui->setAddShapeEnabled(false);
     }
 }
 } // namespace
@@ -102,14 +121,17 @@ bool Application::init()
 
 void Application::handleMouseClick(double mouseX, double mouseY)
 {
-    int width = 0;
-    int height = 0;
-    glfwGetWindowSize(window, &width, &height);
+    ImVec2 viewportPos = gui->getViewportPos();
+    ImVec2 viewportSize = gui->getViewportSize();
 
-    float ndcX = (2.0f * static_cast<float>(mouseX)) / static_cast<float>(width) - 1.0f;
-    float ndcY = 1.0f - (2.0f * static_cast<float>(mouseY)) / static_cast<float>(height);
+    float localX = static_cast<float>(mouseX) - viewportPos.x;
+    float localY = static_cast<float>(mouseY) - viewportPos.y;
+
+    float ndcX = (2.0f * localX) / viewportSize.x - 1.0f;
+    float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
 
     std::cout << "Mouse clicked at screen: (" << mouseX << ", " << mouseY << ")\n";
+    std::cout << "Viewport local: (" << localX << ", " << localY << ")\n";
     std::cout << "Converted to OpenGL: (" << ndcX << ", " << ndcY << ")\n";
 
     viewport->addTriangle(ndcX, ndcY);
@@ -125,8 +147,16 @@ void Application::loop()
         gui->beginFrame();
 
         viewport->renderScene();
-        gui->draw(*viewport);
 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        int displayWidth = 0;
+        int displayHeight = 0;
+        glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
+        glViewport(0, 0, displayWidth, displayHeight);
+        glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        gui->draw(*viewport);
         gui->endFrame();
 
         glfwSwapBuffers(window);

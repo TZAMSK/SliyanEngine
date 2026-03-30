@@ -8,7 +8,6 @@ void openShortcut(GLFWwindow *window, int key, int scancode, int action, int mod
 {
     (void)scancode;
 
-    // Add shape window
     if (key == GLFW_KEY_A && action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL))
     {
         Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
