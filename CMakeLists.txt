@@ -29,6 +29,7 @@ add_executable(test
     src/main.cpp
     src/app/Application.cpp
     src/gui/Gui.cpp
+    src/console/Message.cpp
     src/viewport/Viewport.cpp
     src/viewport/Go3D.cpp
     src/viewport/GridAxis.cpp

@@ -1,18 +1,26 @@
 #pragma once
 
+#include <memory>
+#include "imgui.h"
+
 struct GLFWwindow;
 class Viewport;
-
-#include "imgui.h"
+class Message;
 
 class Gui
 {
   public:
+    Gui();
+    ~Gui();
+
     void init(GLFWwindow *window);
     void beginFrame();
     void draw(Viewport &viewport);
     void endFrame();
     void shutdown();
+
+    Message &getMessage();
+    const Message &getMessage() const;
 
     bool getAddShapeEnabled() const;
     void setAddShapeEnabled(bool value);
@@ -37,6 +45,8 @@ class Gui
     void drawAddShape();
 
   private:
+    std::unique_ptr<Message> message;
+
     bool addShapeEnabled = false;
     bool showAddShapeWindow = false;
     bool showDemoWindow = false;

@@ -3,11 +3,13 @@
 #include "gui/Gui.hpp"
 #include "viewport/Viewport.hpp"
 #include "scene/commands/Shortcuts.hpp"
+#include "console/Message.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <sstream>
 
 namespace
 {
@@ -130,11 +132,16 @@ void Application::handleMouseClick(double mouseX, double mouseY)
     float ndcX = (2.0f * localX) / viewportSize.x - 1.0f;
     float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
 
-    std::cout << "Mouse clicked at screen: (" << mouseX << ", " << mouseY << ")\n";
-    std::cout << "Viewport local: (" << localX << ", " << localY << ")\n";
-    std::cout << "Converted to OpenGL: (" << ndcX << ", " << ndcY << ")\n";
-
     viewport->addTriangle(ndcX, ndcY);
+
+    std::ostringstream formatted;
+    formatted << "Mouse clicked at screen: ( " << mouseX << ", " << mouseY << " ) Viewport local: ( " << localX << ", "
+              << localY
+              << " ) "
+                 "Converted to OpenGL: ( "
+              << ndcX << ", " << ndcY << " )\n";
+
+    gui->getMessage().addMessage(formatted.str());
 }
 
 void Application::loop()

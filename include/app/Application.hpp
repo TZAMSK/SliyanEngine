@@ -3,6 +3,7 @@
 class Gui;
 class Viewport;
 struct GLFWwindow;
+class Message;
 
 class Application
 {

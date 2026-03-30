@@ -1,6 +1,7 @@
 #include "gui/Gui.hpp"
 
 #include "viewport/Viewport.hpp"
+#include "console/Message.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -15,6 +16,22 @@ constexpr float TOOLBAR_HEIGHT = 60.0f;
 constexpr float CONSOLE_HEIGHT = 120.0f;
 constexpr float SIDE_PANEL_WIDTH = 260.0f;
 } // namespace
+
+Gui::Gui() : message(std::make_unique<Message>(""))
+{
+}
+
+Gui::~Gui() = default;
+
+Message &Gui::getMessage()
+{
+    return *message;
+}
+
+const Message &Gui::getMessage() const
+{
+    return *message;
+}
 
 void Gui::init(GLFWwindow *window)
 {
@@ -229,8 +246,14 @@ void Gui::drawConsole()
     ImGui::Begin("Console", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     ImGui::Text("Logs...");
+    ImGui::SameLine();
+    if (ImGui::Button("bin"))
+    {
+        message->clearMessages();
+    };
+
     ImGui::Separator();
-    ImGui::Text("Application messages will go here.");
+    ImGui::Text(message->getMessage().data());
 
     ImGui::End();
 }
