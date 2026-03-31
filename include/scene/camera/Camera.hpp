@@ -1,23 +1,29 @@
 #pragma once
 
-#include <glm/vec3.hpp>
+#include "scene/camera/ICameraViewStrategy.hpp"
+
+#include <glm/glm.hpp>
+#include <memory>
 
 class Camera
 {
   public:
-    virtual ~Camera() = default;
-
-    Camera(const glm::vec3 &position, const glm::vec3 &direction, const glm::vec3 &target);
+    Camera();
 
     const glm::vec3 &getPosition() const;
-    const glm::vec3 &getDirection() const;
     const glm::vec3 &getTarget() const;
-    void setPosition(glm::vec3 position);
-    void setDirection(glm::vec3 direction);
-    void setTarget(glm::vec3 target);
+    const glm::vec3 &getUp() const;
+    float getFovDegrees() const;
+
+    void setView(const glm::vec3 &position, const glm::vec3 &target, const glm::vec3 &up);
+    void applyStrategy(std::unique_ptr<ICameraViewStrategy> newStrategy);
+
+    const ICameraViewStrategy *getStrategy() const;
 
   private:
-    glm::vec3 position;
-    glm::vec3 direction;
-    glm::vec3 target;
+    glm::vec3 position{8.0f, -8.0f, 6.0f};
+    glm::vec3 target{0.0f, 0.0f, 0.0f};
+    glm::vec3 up{0.0f, 0.0f, 1.0f};
+    float fovDegrees = 45.0f;
+    std::unique_ptr<ICameraViewStrategy> strategy;
 };

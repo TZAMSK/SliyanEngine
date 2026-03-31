@@ -1,56 +1,49 @@
 #pragma once
 
-#include <memory>
 #include "imgui.h"
 
+#include <string>
+
 struct GLFWwindow;
-class Viewport;
-class Message;
+class Scene;
+class ViewportRenderer;
+class Application;
 
 class Gui
 {
   public:
-    Gui();
-    ~Gui();
-
     void init(GLFWwindow *window);
     void beginFrame();
-    void draw(Viewport &viewport);
+    void draw(Application &app);
     void endFrame();
     void shutdown();
 
-    Message &getMessage();
-    const Message &getMessage() const;
-
-    bool getAddShapeEnabled() const;
-    void setAddShapeEnabled(bool value);
-
-    void setShowAddShape(bool value);
-    bool getShowAddShape() const;
-
+    bool isMouseInsideViewport() const;
     ImVec2 getViewportPos() const;
     ImVec2 getViewportSize() const;
-    bool isMouseInsideViewport() const;
+
+    bool isAddShapeDialogOpen() const;
+    void openAddShapeDialog();
+    void closeAddShapeDialog();
+
+    bool isTrianglePlacementArmed() const;
+    void armTrianglePlacement();
+    void disarmTrianglePlacement();
+
+    void setLog(const std::string &value);
+    void appendLog(const std::string &value);
+
+    bool &demoWindowFlag();
+    bool &addShapeDialogFlag();
+    std::string &logBuffer();
+
+    void setViewportRect(const ImVec2 &pos, const ImVec2 &size);
 
   private:
-    void drawMenuBar();
-    void drawToolbar();
-
-    void drawLeftPanel();
-    void drawRightPanel(Viewport &viewport);
-    void drawViewport(Viewport &viewport);
-    void drawConsole();
-
-    void drawPopups();
-    void drawAddShape();
-
-  private:
-    std::unique_ptr<Message> message;
-
-    bool addShapeEnabled = false;
-    bool showAddShapeWindow = false;
     bool showDemoWindow = false;
-
-    ImVec2 viewportPos = ImVec2(0.0f, 0.0f);
-    ImVec2 viewportSize = ImVec2(0.0f, 0.0f);
+    bool showAddShapeDialog = false;
+    bool trianglePlacementArmed = false;
+    std::string consoleLog;
+    ImVec2 viewportPos{0.0f, 0.0f};
+    ImVec2 viewportSize{0.0f, 0.0f};
 };

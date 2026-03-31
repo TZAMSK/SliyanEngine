@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Shape.hpp"
-#include <glm/vec3.hpp>
+#include "scene/shapes/Shape.hpp"
+
+#include <array>
 
 class Triangle : public Shape
 {
@@ -11,5 +12,5 @@ class Triangle : public Shape
     const glm::vec3 &getVertex(int index) const;
 
   private:
-    glm::vec3 vertices[3];
+    std::array<glm::vec3, 3> vertices{};
 };
