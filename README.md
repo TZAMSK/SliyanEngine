@@ -10,15 +10,17 @@ Current build has:
 - Viewport Renderer
 - GridAxis Renderer
 - Add Shapes
-    - Triangles
-    - List shapes added in UI (Scene Panel)
+  - Triangles
+  - List shapes added in UI (Scene Panel)
 - Camera system
-    - Isometric
-    - Top (XY) for future 2D implementations
-    - Front (XZ) and Side (YZ)
+  - Isometric
+  - Top (XY) for future 2D implementations
+  - Front (XZ) and Side (YZ)
 - Console
-    - Message actions
+  - Message actions
 - UI
+
+Tools used:
 
 - Dear ImGui
 - OpenGL
