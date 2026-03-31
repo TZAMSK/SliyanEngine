@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(SliyanRender LANGUAGES C CXX)
+project(SliyanEngine LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 20)
@@ -23,27 +23,59 @@ target_include_directories(imgui PUBLIC
     external/imgui/backends
 )
 
-target_link_libraries(imgui PUBLIC glfw OpenGL::GL)
+target_link_libraries(imgui PUBLIC
+    glfw
+    OpenGL::GL
+)
 
-add_executable(test
+add_executable(sliyan_engine
     src/main.cpp
+
     src/app/Application.cpp
+
+    src/core/ShaderProgram.cpp
+
     src/gui/Gui.cpp
-    src/console/Message.cpp
-    src/viewport/Viewport.cpp
-    src/viewport/Go3D.cpp
-    src/viewport/GridAxis.cpp
+    src/gui/panels/AddShapePopup.cpp
+    src/gui/panels/ConsolePanel.cpp
+    src/gui/panels/InspectorPanel.cpp
+    src/gui/panels/MenuBarPanel.cpp
+    src/gui/panels/ScenePanel.cpp
+    src/gui/panels/ToolbarPanel.cpp
+    src/gui/panels/ViewportPanel.cpp
+
+    src/input/InputHandler.cpp
+
+    src/render/GridAxisRenderer.cpp
+    src/render/ViewportRenderer.cpp
+
+    src/scene/Scene.cpp
+    src/scene/camera/Camera.cpp
+    src/scene/camera/views/FrontViewStrategy.cpp
+    src/scene/camera/views/IsometricViewStrategy.cpp
+    src/scene/camera/views/SideViewStrategy.cpp
+    src/scene/camera/views/TopViewStrategy.cpp
+
+    src/scene/commands/AddTriangleModeCommand.cpp
+    src/scene/commands/DisableAddShapeModeCommand.cpp
+    src/scene/commands/OpenAddShapeDialogCommand.cpp
+    src/scene/commands/SetCameraViewCommand.cpp
+
     src/scene/shapes/Shape.cpp
     src/scene/shapes/Triangle.cpp
-    src/scene/commands/Shortcuts.cpp
+
     src/glad.c
 )
 
-target_include_directories(test PRIVATE
+target_include_directories(sliyan_engine PRIVATE
     include
+    external/imgui
+    external/imgui/backends
 )
 
-target_link_libraries(test PRIVATE
+target_compile_definitions(sliyan_engine PRIVATE GLFW_INCLUDE_NONE)
+
+target_link_libraries(sliyan_engine PRIVATE
     imgui
     glfw
     OpenGL::GL

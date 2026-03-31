@@ -1,80 +1,48 @@
 #include "app/Application.hpp"
 
-#include "gui/Gui.hpp"
-#include "viewport/Viewport.hpp"
-#include "scene/commands/Shortcuts.hpp"
-#include "console/Message.hpp"
+#include "scene/camera/views/FrontViewStrategy.hpp"
+#include "scene/camera/views/IsometricViewStrategy.hpp"
+#include "scene/camera/views/SideViewStrategy.hpp"
+#include "scene/camera/views/TopViewStrategy.hpp"
+#include "scene/commands/AddTriangleModeCommand.hpp"
+#include "scene/commands/DisableAddShapeModeCommand.hpp"
+#include "scene/commands/OpenAddShapeDialogCommand.hpp"
+#include "scene/commands/SetCameraViewCommand.hpp"
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
-#include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/vec4.hpp>
+
 #include <sstream>
 
-namespace
+Scene &Application::getScene()
 {
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+    return scene;
+}
+
+Gui &Application::getGui()
+{
+    return gui;
+}
+
+ViewportRenderer &Application::getRenderer()
+{
+    return renderer;
+}
+
+void Application::framebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     (void)window;
     glViewport(0, 0, width, height);
-}
-
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
-{
-    (void)mods;
-
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    {
-        Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-        if (!app)
-        {
-            return;
-        }
-
-        Gui *gui = app->getGui();
-        if (!gui)
-        {
-            return;
-        }
-
-        if (!gui->getAddShapeEnabled())
-        {
-            return;
-        }
-
-        if (!gui->isMouseInsideViewport())
-        {
-            return;
-        }
-
-        double mouseX = 0.0;
-        double mouseY = 0.0;
-        glfwGetCursorPos(window, &mouseX, &mouseY);
-
-        app->handleMouseClick(mouseX, mouseY);
-        gui->setAddShapeEnabled(false);
-    }
-}
-} // namespace
-
-Gui *Application::getGui()
-{
-    return gui;
 }
 
 bool Application::init()
 {
     if (!glfwInit())
     {
-        std::cout << "Failed to initialize GLFW" << std::endl;
         return false;
     }
 
@@ -85,63 +53,136 @@ bool Application::init()
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode *mode = glfwGetVideoMode(monitor);
 
-    window = glfwCreateWindow(mode->width, mode->height, "RzhavaRender", monitor, NULL);
+    window = glfwCreateWindow(mode->width, mode->height, "SliyanEngine", monitor, NULL);
+
     if (!window)
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return false;
     }
 
     glfwMakeContextCurrent(window);
-
-    glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetKeyCallback(window, openShortcut);
-
     glfwSwapInterval(1);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD" << std::endl;
         return false;
     }
 
-    viewport = new Viewport();
-    if (!viewport->init())
+    glfwSetWindowUserPointer(window, this);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+    inputHandler.attach(window, this);
+
+    if (!renderer.init())
     {
-        std::cout << "Failed to initialize viewport" << std::endl;
         return false;
     }
 
-    gui = new Gui();
-    gui->init(window);
-
+    gui.init(window);
+    buildCommands();
+    gui.setLog("Ready.\n");
     return true;
 }
 
-void Application::handleMouseClick(double mouseX, double mouseY)
+void Application::buildCommands()
 {
-    ImVec2 viewportPos = gui->getViewportPos();
-    ImVec2 viewportSize = gui->getViewportSize();
+    commands.emplace(CommandId::OpenAddShapeDialog, std::make_unique<OpenAddShapeDialogCommand>(gui));
+    commands.emplace(CommandId::CloseAddShapeDialog, std::make_unique<DisableAddShapeModeCommand>(gui));
+    commands.emplace(CommandId::AddTriangleMode, std::make_unique<AddTriangleModeCommand>(gui));
 
-    float localX = static_cast<float>(mouseX) - viewportPos.x;
-    float localY = static_cast<float>(mouseY) - viewportPos.y;
+    commands.emplace(CommandId::CameraIsometric, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
+                         return std::make_unique<IsometricViewStrategy>();
+                     }));
+    commands.emplace(CommandId::CameraTop, std::make_unique<SetCameraViewCommand>(
+                                               scene.getCamera(), [] { return std::make_unique<TopViewStrategy>(); }));
+    commands.emplace(CommandId::CameraFront, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
+                         return std::make_unique<FrontViewStrategy>();
+                     }));
+    commands.emplace(CommandId::CameraSide, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
+                         return std::make_unique<SideViewStrategy>();
+                     }));
+}
 
-    float ndcX = (2.0f * localX) / viewportSize.x - 1.0f;
-    float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
+void Application::executeCommand(CommandId id)
+{
+    const auto it = commands.find(id);
+    if (it != commands.end() && it->second)
+    {
+        it->second->execute();
+    }
+}
 
-    viewport->addTriangle(ndcX, ndcY);
+void Application::onViewportClicked(double mouseX, double mouseY)
+{
+    const ImVec2 viewportPos = gui.getViewportPos();
+    const ImVec2 viewportSize = gui.getViewportSize();
 
-    std::ostringstream formatted;
-    formatted << "Mouse clicked at screen: ( " << mouseX << ", " << mouseY << " ) Viewport local: ( " << localX << ", "
-              << localY
-              << " ) "
-                 "Converted to OpenGL: ( "
-              << ndcX << ", " << ndcY << " )\n";
+    if (viewportSize.x <= 0.0f || viewportSize.y <= 0.0f)
+    {
+        return;
+    }
 
-    gui->getMessage().addMessage(formatted.str());
+    const float localX = static_cast<float>(mouseX) - viewportPos.x;
+    const float localY = static_cast<float>(mouseY) - viewportPos.y;
+
+    const float ndcX = (2.0f * localX) / viewportSize.x - 1.0f;
+    const float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
+    const float aspect = viewportSize.x / viewportSize.y;
+
+    const glm::mat4 projection =
+        glm::perspective(glm::radians(scene.getCamera().getFovDegrees()), aspect, 0.1f, 200.0f);
+    const glm::mat4 view =
+        glm::lookAt(scene.getCamera().getPosition(), scene.getCamera().getTarget(), scene.getCamera().getUp());
+    const glm::mat4 inverseVP = glm::inverse(projection * view);
+
+    const glm::vec4 nearPoint = inverseVP * glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
+    const glm::vec4 farPoint = inverseVP * glm::vec4(ndcX, ndcY, 1.0f, 1.0f);
+
+    const glm::vec3 rayOrigin = glm::vec3(nearPoint) / nearPoint.w;
+    const glm::vec3 rayEnd = glm::vec3(farPoint) / farPoint.w;
+    const glm::vec3 rayDirection = glm::normalize(rayEnd - rayOrigin);
+
+    if (glm::abs(rayDirection.z) < 0.0001f)
+    {
+        return;
+    }
+
+    const float t = -rayOrigin.z / rayDirection.z;
+    const glm::vec3 worldPoint = rayOrigin + rayDirection * t;
+
+    scene.addTriangleAt(worldPoint, glm::vec4(0.95f, 0.55f, 0.20f, 1.0f));
+
+    std::ostringstream log;
+    log << "Added triangle at world position: (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z
+        << ")\n";
+    gui.appendLog(log.str());
+}
+
+void Application::requestClose()
+{
+    if (window)
+    {
+        glfwSetWindowShouldClose(window, true);
+    }
+}
+
+void Application::renderMainWindow()
+{
+    renderer.render(scene);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    int displayWidth = 0;
+    int displayHeight = 0;
+    glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
+    glViewport(0, 0, displayWidth, displayHeight);
+
+    glClearColor(0.08f, 0.08f, 0.09f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    gui.beginFrame();
+    gui.draw(*this);
+    gui.endFrame();
 }
 
 void Application::loop()
@@ -149,42 +190,15 @@ void Application::loop()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        processInput(window);
-
-        gui->beginFrame();
-
-        viewport->renderScene();
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        int displayWidth = 0;
-        int displayHeight = 0;
-        glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
-        glViewport(0, 0, displayWidth, displayHeight);
-        glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        gui->draw(*viewport);
-        gui->endFrame();
-
+        renderMainWindow();
         glfwSwapBuffers(window);
     }
 }
 
 void Application::shutdown()
 {
-    if (gui)
-    {
-        gui->shutdown();
-        delete gui;
-        gui = nullptr;
-    }
-
-    if (viewport)
-    {
-        viewport->shutdown();
-        delete viewport;
-        viewport = nullptr;
-    }
+    gui.shutdown();
+    renderer.shutdown();
 
     if (window)
     {

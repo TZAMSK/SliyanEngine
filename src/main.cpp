@@ -2,5 +2,6 @@
 
 int main()
 {
-    return Application{}.run();
+    Application app;
+    return app.run();
 }
