@@ -1,5 +1,9 @@
 #include "scene/Scene.hpp"
 
+#include "scene/shapes/Triangle.hpp"
+#include "scene/shapes/Rectangle.hpp"
+#include "scene/shapes/Cube.hpp"
+
 Camera &Scene::getCamera()
 {
     return camera;
@@ -10,17 +14,56 @@ const Camera &Scene::getCamera() const
     return camera;
 }
 
-std::vector<Triangle> &Scene::getTriangles()
+std::vector<std::unique_ptr<Shape>> &Scene::getShapes()
 {
-    return triangles;
+    return shapes;
 }
 
-const std::vector<Triangle> &Scene::getTriangles() const
+const std::vector<std::unique_ptr<Shape>> &Scene::getShapes() const
 {
-    return triangles;
+    return shapes;
+}
+
+int Scene::getShapeCount() const
+{
+    return static_cast<int>(shapes.size());
 }
 
 void Scene::addTriangleAt(const glm::vec3 &position, const glm::vec4 &color)
 {
-    triangles.emplace_back(position, color);
+    shapes.push_back(std::make_unique<Triangle>(position, color));
+}
+
+void Scene::addRectangleAt(const glm::vec3 &position, const glm::vec4 &color)
+{
+    shapes.push_back(std::make_unique<Rectangle>(position, color));
+}
+
+void Scene::addCubeAt(const glm::vec3 &position, const glm::vec4 &color)
+{
+    shapes.push_back(std::make_unique<Cube>(position, color));
+}
+
+Shape *Scene::findShapeById(unsigned int id)
+{
+    for (auto &s : shapes)
+    {
+        if (s->id == id)
+        {
+            return s.get();
+        }
+    }
+    return nullptr;
+}
+
+const Shape *Scene::findShapeById(unsigned int id) const
+{
+    for (const auto &s : shapes)
+    {
+        if (s->id == id)
+        {
+            return s.get();
+        }
+    }
+    return nullptr;
 }

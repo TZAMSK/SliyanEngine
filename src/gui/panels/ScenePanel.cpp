@@ -2,8 +2,23 @@
 
 #include "gui/GuiLayout.hpp"
 #include "scene/Scene.hpp"
+#include "scene/shapes/Shape.hpp"
 
 #include "imgui.h"
+
+static const char *shapeTypeName(ShapeType t)
+{
+    switch (t)
+    {
+    case ShapeType::Triangle:
+        return "Triangle";
+    case ShapeType::Rectangle:
+        return "Rectangle";
+    case ShapeType::Cube:
+        return "Cube";
+    }
+    return "Shape";
+}
 
 void drawScenePanel(Scene &scene)
 {
@@ -16,15 +31,15 @@ void drawScenePanel(Scene &scene)
 
     ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
-    ImGui::Text("Objects");
+    ImGui::Text("Objects  (%d)", scene.getShapeCount());
     ImGui::Separator();
-    ImGui::Text("Triangles: %d", static_cast<int>(scene.getTriangles().size()));
 
-    for (std::size_t index = 0; index < scene.getTriangles().size(); ++index)
+    const auto &shapes = scene.getShapes();
+    for (std::size_t i = 0; i < shapes.size(); ++i)
     {
-        const auto &triangle = scene.getTriangles()[index];
-        ImGui::BulletText("Triangle %d  (%.2f, %.2f, %.2f)", static_cast<int>(index), triangle.getPosition().x,
-                          triangle.getPosition().y, triangle.getPosition().z);
+        const Shape &s = *shapes[i];
+        ImGui::BulletText("%s %d  (%.2f, %.2f, %.2f)", shapeTypeName(s.getType()), static_cast<int>(i),
+                          s.getPosition().x, s.getPosition().y, s.getPosition().z);
     }
 
     ImGui::End();

@@ -1,13 +1,13 @@
 #pragma once
 
+#include "gui/PlacementMode.hpp"
+
 #include "imgui.h"
 
 #include <string>
 
-struct GLFWwindow;
-class Scene;
-class ViewportRenderer;
 class Application;
+class GLFWwindow;
 
 class Gui
 {
@@ -18,32 +18,46 @@ class Gui
     void endFrame();
     void shutdown();
 
+    // Viewport
     bool isMouseInsideViewport() const;
     ImVec2 getViewportPos() const;
     ImVec2 getViewportSize() const;
+    void setViewportRect(const ImVec2 &pos, const ImVec2 &size);
 
+    // Add-shape dialog
     bool isAddShapeDialogOpen() const;
     void openAddShapeDialog();
     void closeAddShapeDialog();
+    bool &addShapeDialogFlag();
 
+    // Placement mode
+    PlacementMode getPlacementMode() const;
+    bool isAnyPlacementArmed() const;
     bool isTrianglePlacementArmed() const;
+    bool isRectanglePlacementArmed() const;
+    bool isCubePlacementArmed() const;
+
     void armTrianglePlacement();
+    void armRectanglePlacement();
+    void armCubePlacement();
+    void disarmPlacement();
     void disarmTrianglePlacement();
 
+    // Console
     void setLog(const std::string &value);
     void appendLog(const std::string &value);
-
-    bool &demoWindowFlag();
-    bool &addShapeDialogFlag();
+    void clearConsole();
     std::string &logBuffer();
 
-    void setViewportRect(const ImVec2 &pos, const ImVec2 &size);
+    bool &demoWindowFlag();
 
   private:
-    bool showDemoWindow = false;
+    ImVec2 viewportPos = {0.0f, 0.0f};
+    ImVec2 viewportSize = {0.0f, 0.0f};
+
+    PlacementMode placementMode = PlacementMode::None;
     bool showAddShapeDialog = false;
-    bool trianglePlacementArmed = false;
+    bool showDemoWindow = false;
+
     std::string consoleLog;
-    ImVec2 viewportPos{0.0f, 0.0f};
-    ImVec2 viewportSize{0.0f, 0.0f};
 };

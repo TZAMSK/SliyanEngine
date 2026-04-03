@@ -15,6 +15,11 @@ void drawConsolePanel(Gui &gui)
 
     ImGui::Begin("Console", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
+    if (ImGui::Button("Clean"))
+    {
+        gui.clearConsole();
+    }
+
     ImGui::TextWrapped("%s", gui.logBuffer().c_str());
 
     ImGui::End();
