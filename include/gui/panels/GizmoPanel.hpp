@@ -2,5 +2,6 @@
 
 class Gui;
 class SelectionManager;
+class Application;
 
-void drawGizmoPanel(Gui &gui, const SelectionManager &selection);
+void drawGizmoPanel(Gui &gui, Application &app);

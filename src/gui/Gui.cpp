@@ -49,10 +49,11 @@ void Gui::draw(Application &app)
     drawInspectorPanel(*this, app.getScene(), app.getRenderer(), app.getSelectionManager());
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
-    drawAddShapePopup(*this, app);
-    drawGizmoPanel(*this, app.getSelectionManager());
 
-    app.getRenderer().getTranslationGizmoRenderer().draw(app);
+    app.getRenderer().getGizmoRenderer().draw(app, app.getGizmo());
+    drawGizmoPanel(*this, app);
+
+    drawAddShapePopup(*this, app);
 
     if (showDemoWindow)
         ImGui::ShowDemoWindow(&showDemoWindow);

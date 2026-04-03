@@ -2,7 +2,7 @@
 
 #include "core/ShaderProgram.hpp"
 #include "render/GridAxisRenderer.hpp"
-#include "render/gizmo/TranslationGizmoRenderer.hpp"
+#include "render/gizmo/GizmoRenderer.hpp"
 
 #include <glad/glad.h>
 
@@ -22,9 +22,9 @@ class ViewportRenderer
     int getHeight() const;
     float *backgroundColor();
 
-    TranslationGizmoRenderer &getTranslationGizmoRenderer()
+    GizmoRenderer &getGizmoRenderer()
     {
-        return translationGizmoRenderer;
+        return gizmoRenderer;
     }
 
   private:
@@ -34,7 +34,7 @@ class ViewportRenderer
     ShaderProgram shader;
     ShaderProgram outlineShader;
     GridAxisRenderer gridRenderer;
-    TranslationGizmoRenderer translationGizmoRenderer;
+    GizmoRenderer gizmoRenderer;
 
     GLuint triangleVao = 0;
     GLuint rectangleVao = 0;

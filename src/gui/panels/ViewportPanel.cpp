@@ -1,5 +1,3 @@
-#include "gui/panels/ViewportPanel.hpp"
-
 #include "gui/Gui.hpp"
 #include "gui/GuiLayout.hpp"
 #include "render/ViewportRenderer.hpp"
@@ -20,7 +18,8 @@ void drawViewportPanel(Gui &gui, ViewportRenderer &renderer)
                mainViewport->WorkSize.y - topOffset - GuiLayout::CONSOLE_HEIGHT));
 
     ImGui::Begin("Viewport", nullptr,
-                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                     ImGuiWindowFlags_NoBringToFrontOnFocus);
 
     const ImVec2 avail = ImGui::GetContentRegionAvail();
 

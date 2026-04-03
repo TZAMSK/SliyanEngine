@@ -1,12 +1,13 @@
 #pragma once
 
 class Application;
+class Gizmo;
 
-class TranslationGizmoRenderer
+class GizmoRenderer
 {
   public:
     bool init();
-    void draw(Application &app) const;
+    void draw(Application &app, Gizmo &gizmo) const;
     void shutdown();
 
   private:

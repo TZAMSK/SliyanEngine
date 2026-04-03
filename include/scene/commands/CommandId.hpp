@@ -1,4 +1,3 @@
-
 #pragma once
 
 enum class CommandId
@@ -15,4 +14,9 @@ enum class CommandId
     CameraTop,
     CameraFront,
     CameraSide,
+
+    // Gizmo
+    GizmoTranslation,
+    GizmoRotation,
+    GizmoScale,
 };

@@ -1,38 +1,28 @@
-#include "scene/selection/SelectionManager.hpp"
-
+#include "app/Application.hpp"
 #include "gui/Gui.hpp"
-#include "gui/GuiLayout.hpp"
 
 #include "imgui.h"
 
-void drawGizmoPanel(Gui &gui, const SelectionManager &selection)
+void drawGizmoPanel(Gui &gui, Application &app)
 {
-    ImGuiViewport *mainViewport = ImGui::GetMainViewport();
-    const float topOffset = ImGui::GetFrameHeight() + GuiLayout::TOOLBAR_HEIGHT;
+    ImVec2 viewportPos = app.getGui().getViewportPos();
+    ImVec2 panel = ImVec2(viewportPos.x + 10.0f, viewportPos.y + 10.0f);
 
-    ImGui::SetNextWindowPos(
-        ImVec2(mainViewport->WorkPos.x + GuiLayout::LEFT_PANEL_WIDTH, mainViewport->WorkPos.y + topOffset));
-    ImGui::SetNextWindowSize(ImVec2(100.0f, 100.0f));
+    ImGui::SetNextWindowPos(panel, ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.8f);
+    ImGui::SetNextWindowSize(ImVec2(110.0f, 115.0f), ImGuiCond_Always);
 
-    if (!selection.hasSelection())
-        return;
-    
-    ImGui::Begin(" ");
+    ImGui::Begin("##gizmo_panel", nullptr,
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing);
 
-    if (ImGui::Button("Translation"))
-    {
-        return;
-    }
-
-    if (ImGui::Button("Rotation"))
-    {
-        return;
-    }
-
-    if (ImGui::Button("Scale"))
-    {
-        return;
-    }
+    if (ImGui::Button("Translation", ImVec2(-1, 0)))
+        app.executeCommand(CommandId::GizmoTranslation);
+    if (ImGui::Button("Rotation", ImVec2(-1, 0)))
+        app.executeCommand(CommandId::GizmoRotation);
+    if (ImGui::Button("Scale", ImVec2(-1, 0)))
+        app.executeCommand(CommandId::GizmoScale);
 
     ImGui::End();
 }

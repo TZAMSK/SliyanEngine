@@ -8,6 +8,7 @@
 #include "scene/commands/CommandId.hpp"
 #include "scene/commands/ICommand.hpp"
 #include "scene/selection/SelectionManager.hpp"
+#include "render/gizmo/Gizmo.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -28,6 +29,7 @@ class Application
     ViewportRenderer &getRenderer();
     SelectionManager &getSelectionManager();
     InputHandler &getInputHandler();
+    Gizmo &getGizmo();
 
     void executeCommand(CommandId id);
     void onViewportClicked(const glm::vec3 &worldPoint);
@@ -36,6 +38,10 @@ class Application
   private:
     bool init();
     void buildCommands();
+    void buildAddShapeCommands();
+    void buildCameraCommands();
+    void buildGizmoCommands();
+
     void loop();
     void shutdown();
     void renderMainWindow();
@@ -51,6 +57,7 @@ class Application
     SelectionManager selectionManager;
     InputHandler inputHandler;
     Camera camera;
+    Gizmo gizmo;
 
     std::map<CommandId, std::unique_ptr<ICommand>> commands;
 };

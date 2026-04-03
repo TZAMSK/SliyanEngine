@@ -61,9 +61,11 @@ add_executable(sliyan_engine
 
     src/render/GridAxisRenderer.cpp
     src/render/ViewportRenderer.cpp
-    src/render/gizmo/TranslationGizmoRenderer.cpp
-    src/render/gizmo/RotationGizmoRenderer.cpp
-    src/render/gizmo/ScaleGizmoRenderer.cpp
+    src/render/gizmo/GizmoRenderer.cpp
+    src/render/gizmo/Gizmo.cpp
+    src/render/gizmo/TranslationGizmoStrategy.cpp
+    src/render/gizmo/RotationGizmoStrategy.cpp
+    src/render/gizmo/ScaleGizmoStrategy.cpp
 
     src/scene/Scene.cpp
     src/scene/camera/Camera.cpp
@@ -78,6 +80,7 @@ add_executable(sliyan_engine
     src/scene/commands/DisableAddShapeModeCommand.cpp
     src/scene/commands/OpenAddShapeDialogCommand.cpp
     src/scene/commands/SetCameraViewCommand.cpp
+    src/scene/commands/SetGizmoCommand.cpp
 
     src/scene/selection/SelectionManager.cpp
 

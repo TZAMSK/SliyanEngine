@@ -240,7 +240,7 @@ bool ViewportRenderer::init()
     if (!gridRenderer.init())
         return false;
 
-    if (!translationGizmoRenderer.init())
+    if (!gizmoRenderer.init())
         return false;
 
     triangleVao = makeVao(kTriangleVerts, sizeof(kTriangleVerts));

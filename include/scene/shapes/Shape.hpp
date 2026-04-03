@@ -12,7 +12,12 @@ class Shape
     virtual ShapeType getType() const = 0;
 
     const glm::vec3 &getPosition() const;
+    const glm::vec3 &getRotation() const;
+    const glm::vec3 &getScale() const;
+
     void setPosition(const glm::vec3 &pos);
+    void setRotation(const glm::vec3 &rot);
+    void setScale(const glm::vec3 &s);
 
     const glm::vec4 &getColor() const;
     void setColor(const glm::vec4 &newColor);

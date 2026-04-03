@@ -4,12 +4,16 @@
 #include "scene/camera/views/IsometricViewStrategy.hpp"
 #include "scene/camera/views/SideViewStrategy.hpp"
 #include "scene/camera/views/TopViewStrategy.hpp"
+#include "render/gizmo/TranslationGizmoStrategy.hpp"
+#include "render/gizmo/RotationGizmoStrategy.hpp"
+#include "render/gizmo/ScaleGizmoStratgy.hpp"
 #include "scene/commands/AddTriangleModeCommand.hpp"
 #include "scene/commands/AddRectangleModeCommand.hpp"
 #include "scene/commands/AddCubeModeCommand.hpp"
 #include "scene/commands/DisableAddShapeModeCommand.hpp"
 #include "scene/commands/OpenAddShapeDialogCommand.hpp"
 #include "scene/commands/SetCameraViewCommand.hpp"
+#include "scene/commands/SetGizmoCommand.hpp"
 
 #include <glad/glad.h>
 
@@ -45,6 +49,11 @@ SelectionManager &Application::getSelectionManager()
 InputHandler &Application::getInputHandler()
 {
     return inputHandler;
+}
+
+Gizmo &Application::getGizmo()
+{
+    return gizmo;
 }
 
 void Application::framebufferSizeCallback(GLFWwindow *window, int width, int height)
@@ -93,12 +102,22 @@ bool Application::init()
 
 void Application::buildCommands()
 {
+    buildAddShapeCommands();
+    buildCameraCommands();
+    buildGizmoCommands();
+}
+
+void Application::buildAddShapeCommands()
+{
     commands.emplace(CommandId::OpenAddShapeDialog, std::make_unique<OpenAddShapeDialogCommand>(gui));
     commands.emplace(CommandId::CloseAddShapeDialog, std::make_unique<DisableAddShapeModeCommand>(gui));
     commands.emplace(CommandId::AddTriangleMode, std::make_unique<AddTriangleModeCommand>(gui));
     commands.emplace(CommandId::AddRectangleMode, std::make_unique<AddRectangleModeCommand>(gui));
     commands.emplace(CommandId::AddCubeMode, std::make_unique<AddCubeModeCommand>(gui));
+}
 
+void Application::buildCameraCommands()
+{
     commands.emplace(CommandId::CameraIsometric, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
                          return std::make_unique<IsometricViewStrategy>();
                      }));
@@ -110,6 +129,17 @@ void Application::buildCommands()
     commands.emplace(CommandId::CameraSide, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
                          return std::make_unique<SideViewStrategy>();
                      }));
+}
+
+void Application::buildGizmoCommands()
+{
+    commands.emplace(CommandId::GizmoTranslation, std::make_unique<SetGizmoCommand>(gizmo, [] {
+                         return std::make_unique<TranslationGizmoStrategy>();
+                     }));
+    commands.emplace(CommandId::GizmoRotation, std::make_unique<SetGizmoCommand>(
+                                                   gizmo, [] { return std::make_unique<RotationGizmoStrategy>(); }));
+    commands.emplace(CommandId::GizmoScale,
+                     std::make_unique<SetGizmoCommand>(gizmo, [] { return std::make_unique<ScaleGizmoStrategy>(); }));
 }
 
 void Application::executeCommand(CommandId id)
