@@ -8,10 +8,12 @@
 #include "gui/panels/ScenePanel.hpp"
 #include "gui/panels/ToolbarPanel.hpp"
 #include "gui/panels/ViewportPanel.hpp"
+#include "gui/panels/GizmoPanel.hpp"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "ImGuizmo.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -36,6 +38,7 @@ void Gui::beginFrame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGuizmo::BeginFrame();
 }
 
 void Gui::draw(Application &app)
@@ -47,6 +50,9 @@ void Gui::draw(Application &app)
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
     drawAddShapePopup(*this, app);
+    drawGizmoPanel(*this, app.getSelectionManager());
+
+    app.getRenderer().getTranslationGizmoRenderer().draw(app);
 
     if (showDemoWindow)
         ImGui::ShowDemoWindow(&showDemoWindow);

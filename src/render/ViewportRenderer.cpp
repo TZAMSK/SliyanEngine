@@ -3,6 +3,7 @@
 #include "scene/Scene.hpp"
 #include "scene/shapes/Shape.hpp"
 #include "scene/selection/SelectionManager.hpp"
+#include "app/Application.hpp"
 
 #include <glad/glad.h>
 
@@ -239,6 +240,9 @@ bool ViewportRenderer::init()
     if (!gridRenderer.init())
         return false;
 
+    if (!translationGizmoRenderer.init())
+        return false;
+
     triangleVao = makeVao(kTriangleVerts, sizeof(kTriangleVerts));
     rectangleVao = makeVao(kRectVerts, sizeof(kRectVerts));
     cubeVao = makeVao(kCubeVerts, sizeof(kCubeVerts));
@@ -349,8 +353,11 @@ static int vertexCountFor(ShapeType type)
     return 3;
 }
 
-void ViewportRenderer::render(const Scene &scene, const SelectionManager &selection)
+void ViewportRenderer::render(Application &app)
 {
+    const Scene &scene = app.getScene();
+    const SelectionManager selection = app.getSelectionManager();
+
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, framebufferWidth, framebufferHeight);
 
@@ -399,7 +406,7 @@ void ViewportRenderer::render(const Scene &scene, const SelectionManager &select
         glStencilFunc(GL_ALWAYS, selected ? 1 : 0, 0xFF);
         glStencilMask(0xFF);
 
-        const glm::mat4 model = glm::translate(glm::mat4(1.0f), shape.getPosition());
+        const glm::mat4 model = shape.getTransform();
         const glm::vec4 &c = shape.getColor();
 
         glUniformMatrix4fv(glGetUniformLocation(shader.id(), "model"), 1, GL_FALSE, glm::value_ptr(model));

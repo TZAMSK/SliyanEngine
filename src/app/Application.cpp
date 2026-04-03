@@ -155,7 +155,7 @@ void Application::requestClose()
 
 void Application::renderMainWindow()
 {
-    renderer.render(scene, selectionManager);
+    renderer.render(*this);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
