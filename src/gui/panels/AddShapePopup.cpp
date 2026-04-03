@@ -9,9 +9,7 @@
 void drawAddShapePopup(Gui &gui, Application &app)
 {
     if (!gui.isAddShapeDialogOpen())
-    {
         return;
-    }
 
     bool &open = gui.addShapeDialogFlag();
 
@@ -23,6 +21,20 @@ void drawAddShapePopup(Gui &gui, Application &app)
     if (ImGui::Button("Triangle"))
     {
         app.executeCommand(CommandId::AddTriangleMode);
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Rectangle"))
+    {
+        app.executeCommand(CommandId::AddRectangleMode);
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Cube"))
+    {
+        app.executeCommand(CommandId::AddCubeMode);
     }
 
     ImGui::End();

@@ -43,15 +43,13 @@ void Gui::draw(Application &app)
     drawMenuBarPanel(*this, app);
     drawToolbarPanel(app);
     drawScenePanel(app.getScene());
-    drawInspectorPanel(*this, app.getScene(), app.getRenderer());
+    drawInspectorPanel(*this, app.getScene(), app.getRenderer(), app.getSelectionManager());
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
     drawAddShapePopup(*this, app);
 
     if (showDemoWindow)
-    {
         ImGui::ShowDemoWindow(&showDemoWindow);
-    }
 }
 
 void Gui::endFrame()
@@ -67,6 +65,8 @@ void Gui::shutdown()
     ImGui::DestroyContext();
 }
 
+// Viewport
+
 bool Gui::isMouseInsideViewport() const
 {
     const ImVec2 mouse = ImGui::GetMousePos();
@@ -78,7 +78,6 @@ ImVec2 Gui::getViewportPos() const
 {
     return viewportPos;
 }
-
 ImVec2 Gui::getViewportSize() const
 {
     return viewportSize;
@@ -90,59 +89,100 @@ void Gui::setViewportRect(const ImVec2 &pos, const ImVec2 &size)
     viewportSize = size;
 }
 
+// Add shape
+
 bool Gui::isAddShapeDialogOpen() const
 {
     return showAddShapeDialog;
 }
-
 void Gui::openAddShapeDialog()
 {
     showAddShapeDialog = true;
 }
-
 void Gui::closeAddShapeDialog()
 {
     showAddShapeDialog = false;
 }
 
+// Placement mode
+
+PlacementMode Gui::getPlacementMode() const
+{
+    return placementMode;
+}
+
 bool Gui::isTrianglePlacementArmed() const
 {
-    return trianglePlacementArmed;
+    return placementMode == PlacementMode::Triangle;
+}
+bool Gui::isRectanglePlacementArmed() const
+{
+    return placementMode == PlacementMode::Rectangle;
+}
+bool Gui::isCubePlacementArmed() const
+{
+    return placementMode == PlacementMode::Cube;
+}
+bool Gui::isAnyPlacementArmed() const
+{
+    return placementMode != PlacementMode::None;
 }
 
 void Gui::armTrianglePlacement()
 {
-    trianglePlacementArmed = true;
+    placementMode = PlacementMode::Triangle;
+    showAddShapeDialog = false;
+}
+
+void Gui::armRectanglePlacement()
+{
+    placementMode = PlacementMode::Rectangle;
+    showAddShapeDialog = false;
+}
+
+void Gui::armCubePlacement()
+{
+    placementMode = PlacementMode::Cube;
+    showAddShapeDialog = false;
+}
+
+void Gui::disarmPlacement()
+{
+    placementMode = PlacementMode::None;
     showAddShapeDialog = false;
 }
 
 void Gui::disarmTrianglePlacement()
 {
-    trianglePlacementArmed = false;
-    showAddShapeDialog = false;
+    disarmPlacement();
 }
+
+// Console
 
 void Gui::setLog(const std::string &value)
 {
     consoleLog = value;
 }
-
 void Gui::appendLog(const std::string &value)
 {
     consoleLog += value;
 }
+void Gui::clearConsole()
+{
+    consoleLog.clear();
+}
+std::string &Gui::logBuffer()
+{
+    return consoleLog;
+}
+
+// Condional
 
 bool &Gui::demoWindowFlag()
 {
     return showDemoWindow;
 }
-
 bool &Gui::addShapeDialogFlag()
 {
     return showAddShapeDialog;
-}
-
-std::string &Gui::logBuffer()
-{
-    return consoleLog;
 }

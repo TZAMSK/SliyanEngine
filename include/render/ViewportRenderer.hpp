@@ -3,39 +3,44 @@
 #include "core/ShaderProgram.hpp"
 #include "render/GridAxisRenderer.hpp"
 
+#include <glad/glad.h>
+
 class Scene;
+class SelectionManager;
 
 class ViewportRenderer
 {
   public:
     bool init();
+    void render(const Scene &scene, const SelectionManager &selection);
+    void resizeFramebuffer(int width, int height);
     void shutdown();
 
-    void resizeFramebuffer(int width, int height);
-    void render(const Scene &scene);
-
-    unsigned int getColorTexture() const;
+    GLuint getColorTexture() const;
+    GLuint getFbo() const;
     int getWidth() const;
     int getHeight() const;
-
     float *backgroundColor();
 
   private:
     bool createFramebuffer(int width, int height);
     void destroyFramebuffer();
 
-  private:
-    unsigned int fbo = 0;
-    unsigned int colorTexture = 0;
-    unsigned int rbo = 0;
+    ShaderProgram shader;
+    ShaderProgram outlineShader;
+    GridAxisRenderer gridRenderer;
+
+    GLuint triangleVao = 0;
+    GLuint rectangleVao = 0;
+    GLuint cubeVao = 0;
+
+    GLuint fbo = 0;
+    GLuint colorTexture = 0;
+    GLuint idTexture = 0;
+    GLuint rbo = 0;
+
     int framebufferWidth = 1280;
     int framebufferHeight = 720;
 
-    float clearColor[4] = {0.10f, 0.10f, 0.12f, 1.0f};
-
-    unsigned int triangleVao = 0;
-    unsigned int triangleVbo = 0;
-
-    ShaderProgram shader;
-    GridAxisRenderer gridRenderer;
+    float clearColor[4] = {0.18f, 0.18f, 0.18f, 1.0f};
 };

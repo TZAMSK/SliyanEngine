@@ -5,6 +5,8 @@
 #include "scene/camera/views/SideViewStrategy.hpp"
 #include "scene/camera/views/TopViewStrategy.hpp"
 #include "scene/commands/AddTriangleModeCommand.hpp"
+#include "scene/commands/AddRectangleModeCommand.hpp"
+#include "scene/commands/AddCubeModeCommand.hpp"
 #include "scene/commands/DisableAddShapeModeCommand.hpp"
 #include "scene/commands/OpenAddShapeDialogCommand.hpp"
 #include "scene/commands/SetCameraViewCommand.hpp"
@@ -17,6 +19,8 @@
 #include <glm/vec4.hpp>
 
 #include <sstream>
+
+static constexpr glm::vec4 kDefaultColor{0.608f, 0.608f, 0.608f, 1.0f};
 
 Scene &Application::getScene()
 {
@@ -33,6 +37,16 @@ ViewportRenderer &Application::getRenderer()
     return renderer;
 }
 
+SelectionManager &Application::getSelectionManager()
+{
+    return selectionManager;
+}
+
+InputHandler &Application::getInputHandler()
+{
+    return inputHandler;
+}
+
 void Application::framebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     (void)window;
@@ -42,18 +56,15 @@ void Application::framebufferSizeCallback(GLFWwindow *window, int width, int hei
 bool Application::init()
 {
     if (!glfwInit())
-    {
         return false;
-    }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-
-    window = glfwCreateWindow(mode->width, mode->height, "SliyanEngine", monitor, NULL);
+    GLFWmonitor *targetMonitor = Application::initializeMonitor(1);
+    const GLFWvidmode *mode = glfwGetVideoMode(targetMonitor);
+    window = glfwCreateWindow(mode->width, mode->height, "SliyanEngine", targetMonitor, nullptr);
 
     if (!window)
     {
@@ -65,18 +76,14 @@ bool Application::init()
     glfwSwapInterval(1);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
         return false;
-    }
 
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     inputHandler.attach(window, this);
 
     if (!renderer.init())
-    {
         return false;
-    }
 
     gui.init(window);
     buildCommands();
@@ -89,6 +96,8 @@ void Application::buildCommands()
     commands.emplace(CommandId::OpenAddShapeDialog, std::make_unique<OpenAddShapeDialogCommand>(gui));
     commands.emplace(CommandId::CloseAddShapeDialog, std::make_unique<DisableAddShapeModeCommand>(gui));
     commands.emplace(CommandId::AddTriangleMode, std::make_unique<AddTriangleModeCommand>(gui));
+    commands.emplace(CommandId::AddRectangleMode, std::make_unique<AddRectangleModeCommand>(gui));
+    commands.emplace(CommandId::AddCubeMode, std::make_unique<AddCubeModeCommand>(gui));
 
     commands.emplace(CommandId::CameraIsometric, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
                          return std::make_unique<IsometricViewStrategy>();
@@ -112,68 +121,45 @@ void Application::executeCommand(CommandId id)
     }
 }
 
-void Application::onViewportClicked(double mouseX, double mouseY)
+void Application::onViewportClicked(const glm::vec3 &worldPoint)
 {
-    const ImVec2 viewportPos = gui.getViewportPos();
-    const ImVec2 viewportSize = gui.getViewportSize();
-
-    if (viewportSize.x <= 0.0f || viewportSize.y <= 0.0f)
-    {
-        return;
-    }
-
-    const float localX = static_cast<float>(mouseX) - viewportPos.x;
-    const float localY = static_cast<float>(mouseY) - viewportPos.y;
-
-    const float ndcX = (2.0f * localX) / viewportSize.x - 1.0f;
-    const float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
-    const float aspect = viewportSize.x / viewportSize.y;
-
-    const glm::mat4 projection =
-        glm::perspective(glm::radians(scene.getCamera().getFovDegrees()), aspect, 0.1f, 200.0f);
-    const glm::mat4 view =
-        glm::lookAt(scene.getCamera().getPosition(), scene.getCamera().getTarget(), scene.getCamera().getUp());
-    const glm::mat4 inverseVP = glm::inverse(projection * view);
-
-    const glm::vec4 nearPoint = inverseVP * glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
-    const glm::vec4 farPoint = inverseVP * glm::vec4(ndcX, ndcY, 1.0f, 1.0f);
-
-    const glm::vec3 rayOrigin = glm::vec3(nearPoint) / nearPoint.w;
-    const glm::vec3 rayEnd = glm::vec3(farPoint) / farPoint.w;
-    const glm::vec3 rayDirection = glm::normalize(rayEnd - rayOrigin);
-
-    if (glm::abs(rayDirection.z) < 0.0001f)
-    {
-        return;
-    }
-
-    const float t = -rayOrigin.z / rayDirection.z;
-    const glm::vec3 worldPoint = rayOrigin + rayDirection * t;
-
-    scene.addTriangleAt(worldPoint, glm::vec4(0.95f, 0.55f, 0.20f, 1.0f));
+    const PlacementMode mode = gui.getPlacementMode();
 
     std::ostringstream log;
-    log << "Added triangle at world position: (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z
-        << ")\n";
+
+    if (mode == PlacementMode::Triangle)
+    {
+        scene.addTriangleAt(worldPoint, kDefaultColor);
+        log << "Added Triangle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
+    }
+    else if (mode == PlacementMode::Rectangle)
+    {
+        scene.addRectangleAt(worldPoint, kDefaultColor);
+        log << "Added Rectangle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
+    }
+    else if (mode == PlacementMode::Cube)
+    {
+        scene.addCubeAt(worldPoint, kDefaultColor);
+        log << "Added Cube at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
+    }
+
     gui.appendLog(log.str());
+    executeCommand(CommandId::CloseAddShapeDialog);
 }
 
 void Application::requestClose()
 {
     if (window)
-    {
         glfwSetWindowShouldClose(window, true);
-    }
 }
 
 void Application::renderMainWindow()
 {
-    renderer.render(scene);
+    renderer.render(scene, selectionManager);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    int displayWidth = 0;
-    int displayHeight = 0;
+    int displayWidth = 0, displayHeight = 0;
     glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
     glViewport(0, 0, displayWidth, displayHeight);
 
@@ -183,6 +169,20 @@ void Application::renderMainWindow()
     gui.beginFrame();
     gui.draw(*this);
     gui.endFrame();
+}
+
+GLFWmonitor *Application::initializeMonitor(int monitorIndex)
+{
+    int count = 0;
+    GLFWmonitor **monitors = glfwGetMonitors(&count);
+
+    if (!monitors || count == 0)
+        return nullptr;
+
+    if (monitorIndex >= 0 && monitorIndex < count)
+        return monitors[monitorIndex];
+
+    return glfwGetPrimaryMonitor();
 }
 
 void Application::loop()
