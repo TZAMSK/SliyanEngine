@@ -38,10 +38,8 @@ glm::vec3 InputHandler::mouseLocalToWorldSpace(const Gui &gui, const Scene &scen
     const float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
     const float aspect = viewportSize.x / viewportSize.y;
 
-    const glm::mat4 projection =
-        glm::perspective(glm::radians(scene.getCamera().getFovDegrees()), aspect, 0.1f, 200.0f);
-    const glm::mat4 view =
-        glm::lookAt(scene.getCamera().getPosition(), scene.getCamera().getTarget(), scene.getCamera().getUp());
+    const glm::mat4 projection = scene.getCamera().getProjection(viewportSize);
+    const glm::mat4 view = scene.getCamera().getLookAt();
 
     const glm::mat4 inverseVP = glm::inverse(projection * view);
     const glm::vec4 nearPoint = inverseVP * glm::vec4(ndcX, ndcY, -1.0f, 1.0f);

@@ -28,6 +28,18 @@ target_link_libraries(imgui PUBLIC
     OpenGL::GL
 )
 
+add_library(imguizmo
+    external/imguizmo/ImGuizmo.cpp
+)
+
+target_include_directories(imguizmo PUBLIC
+    external/imguizmo
+)
+
+target_link_libraries(imguizmo PUBLIC
+    imgui
+)
+
 add_executable(sliyan_engine
     src/main.cpp
 
@@ -43,11 +55,15 @@ add_executable(sliyan_engine
     src/gui/panels/ScenePanel.cpp
     src/gui/panels/ToolbarPanel.cpp
     src/gui/panels/ViewportPanel.cpp
+    src/gui/panels/GizmoPanel.cpp
 
     src/input/InputHandler.cpp
 
     src/render/GridAxisRenderer.cpp
     src/render/ViewportRenderer.cpp
+    src/render/gizmo/TranslationGizmoRenderer.cpp
+    src/render/gizmo/RotationGizmoRenderer.cpp
+    src/render/gizmo/ScaleGizmoRenderer.cpp
 
     src/scene/Scene.cpp
     src/scene/camera/Camera.cpp
@@ -77,6 +93,7 @@ add_executable(sliyan_engine
 
 target_include_directories(sliyan_engine PRIVATE
     include
+    external/imguizmo
     external/imgui
     external/imgui/backends
 )
@@ -85,6 +102,7 @@ target_compile_definitions(sliyan_engine PRIVATE GLFW_INCLUDE_NONE)
 
 target_link_libraries(sliyan_engine PRIVATE
     imgui
+    imguizmo
     glfw
     OpenGL::GL
 )

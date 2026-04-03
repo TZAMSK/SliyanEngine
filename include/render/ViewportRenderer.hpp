@@ -2,17 +2,17 @@
 
 #include "core/ShaderProgram.hpp"
 #include "render/GridAxisRenderer.hpp"
+#include "render/gizmo/TranslationGizmoRenderer.hpp"
 
 #include <glad/glad.h>
 
-class Scene;
-class SelectionManager;
+class Application;
 
 class ViewportRenderer
 {
   public:
     bool init();
-    void render(const Scene &scene, const SelectionManager &selection);
+    void render(Application &app);
     void resizeFramebuffer(int width, int height);
     void shutdown();
 
@@ -22,6 +22,11 @@ class ViewportRenderer
     int getHeight() const;
     float *backgroundColor();
 
+    TranslationGizmoRenderer &getTranslationGizmoRenderer()
+    {
+        return translationGizmoRenderer;
+    }
+
   private:
     bool createFramebuffer(int width, int height);
     void destroyFramebuffer();
@@ -29,6 +34,7 @@ class ViewportRenderer
     ShaderProgram shader;
     ShaderProgram outlineShader;
     GridAxisRenderer gridRenderer;
+    TranslationGizmoRenderer translationGizmoRenderer;
 
     GLuint triangleVao = 0;
     GLuint rectangleVao = 0;

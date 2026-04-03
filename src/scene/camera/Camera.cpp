@@ -2,7 +2,8 @@
 
 #include "scene/camera/views/IsometricViewStrategy.hpp"
 
-#include <glm/ext/matrix_transform.hpp>
+#include <glad/glad.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 Camera::Camera() : strategy(std::make_unique<IsometricViewStrategy>())
 {
@@ -29,12 +30,17 @@ const glm::vec3 &Camera::getUp() const
     return up;
 }
 
-const double &Camera::getSensitivity() const
+const glm::mat4 Camera::getProjection(ImVec2 viewportSize) const
 {
-    return sensitivity;
+    return glm::perspective(glm::radians(fovDegrees), viewportSize.x / viewportSize.y, 0.1f, 200.0f);
 }
 
-float Camera::getFovDegrees() const
+const glm::mat4 Camera::getLookAt() const
+{
+    return glm::lookAt(position, target, up);
+}
+
+const float Camera::getFovDegrees() const
 {
     return fovDegrees;
 }

@@ -2,8 +2,11 @@
 
 #include "scene/camera/ICameraViewStrategy.hpp"
 
+#include <imgui.h>
 #include <glm/glm.hpp>
 #include <memory>
+
+class Gui;
 
 class Camera
 {
@@ -14,9 +17,10 @@ class Camera
     const glm::vec3 &getPosition() const;
     const glm::vec3 &getTarget() const;
     const glm::vec3 &getUp() const;
-    const double &getSensitivity() const;
 
-    float getFovDegrees() const;
+    const glm::mat4 getProjection(ImVec2 viewportSize) const;
+    const glm::mat4 getLookAt() const;
+    const float getFovDegrees() const;
     void moveCamera(double mouseX, double mouseY);
 
     void setPosition(glm::vec3 new_position);
