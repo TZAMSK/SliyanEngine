@@ -48,5 +48,5 @@ class ViewportRenderer
     int framebufferWidth = 1280;
     int framebufferHeight = 720;
 
-    float clearColor[4] = {0.18f, 0.18f, 0.18f, 1.0f};
+    float clearColor[4] = {0.34f, 0.34f, 0.34f, 1.0f};
 };

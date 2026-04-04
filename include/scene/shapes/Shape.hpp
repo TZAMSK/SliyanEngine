@@ -24,6 +24,14 @@ class Shape
 
     glm::mat4 getTransform() const;
 
+    virtual const float *getVertexData() const = 0;
+    virtual size_t getFloatCount() const = 0;
+
+    size_t getVertexCount() const
+    {
+        return getFloatCount() / 3;
+    }
+
     unsigned int id;
 
   protected:

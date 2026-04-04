@@ -8,32 +8,32 @@ bool GridAxisRenderer::init()
 {
     std::vector<float> vertices;
 
-    const int halfSize = 30;
+    const int halfSize = 60;
     const float step = 1.0f;
 
     for (int i = -halfSize; i <= halfSize; ++i)
     {
         const float coord = static_cast<float>(i) * step;
         const bool isCenter = (i == 0);
-        const bool isMajor = (i % 5 == 0);
+        const bool isMajor = (i % 10 == 0);
 
-        float lineR = 0.30f;
-        float lineG = 0.30f;
-        float lineB = 0.30f;
+        float lineR = 0.42f;
+        float lineG = 0.42f;
+        float lineB = 0.42f;
 
         if (isMajor)
         {
-            lineR = 0.42f;
-            lineG = 0.42f;
-            lineB = 0.42f;
+            lineR = 0.55f;
+            lineG = 0.55f;
+            lineB = 0.55f;
         }
 
         if (isCenter)
         {
-            vertices.insert(vertices.end(), {-halfSize * step, coord, 0.0f, 0.0f, 1.0f, 0.0f, halfSize * step, coord,
-                                             0.0f, 0.0f, 1.0f, 0.0f});
-            vertices.insert(vertices.end(), {coord, -halfSize * step, 0.0f, 1.0f, 0.0f, 0.0f, coord, halfSize * step,
+            vertices.insert(vertices.end(), {-halfSize * step, coord, 0.0f, 1.0f, 0.0f, 0.0f, halfSize * step, coord,
                                              0.0f, 1.0f, 0.0f, 0.0f});
+            vertices.insert(vertices.end(), {coord, -halfSize * step, 0.0f, 0.0f, 1.0f, 0.0f, coord, halfSize * step,
+                                             0.0f, 0.0f, 1.0f, 0.0f});
         }
         else
         {
@@ -44,7 +44,7 @@ bool GridAxisRenderer::init()
         }
     }
 
-    vertices.insert(vertices.end(), {0.0f, 0.0f, 0.0f, 0.15f, 0.45f, 1.0f, 0.0f, 0.0f, 5.0f, 0.15f, 0.45f, 1.0f});
+    vertices.insert(vertices.end(), {0.0f, 0.0f, 0.0f, 0.15f, 0.45f, 1.0f, 0.0f, 0.0f, 12.0f, 0.15f, 0.45f, 1.0f});
 
     vertexCount = static_cast<int>(vertices.size() / 6);
 
