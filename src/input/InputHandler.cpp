@@ -8,7 +8,6 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/vec4.hpp>
 
@@ -100,10 +99,14 @@ void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int actio
     if (button == GLFW_MOUSE_BUTTON_MIDDLE)
     {
         if (action == GLFW_PRESS)
+        {
             app->getInputHandler().middleMouseHeld = true;
+            app->getScene().getCamera().resetFirstMouse();
+        }
         else if (action == GLFW_RELEASE)
+        {
             app->getInputHandler().middleMouseHeld = false;
-
+        }
         return;
     }
 
@@ -139,15 +142,14 @@ void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, doubl
     if (!app)
         return;
 
-    double mouseX = 0.0, mouseY = 0.0;
-    glfwGetCursorPos(window, &mouseX, &mouseY);
-
     if (!app->getGui().isMouseInsideViewport())
-        return;
+    {
+        app->getScene().getCamera().resetFirstMouse();
+    }
 
     if (app->getInputHandler().middleMouseHeld)
     {
-        app->getScene().getCamera().moveCamera(mouseX, mouseY);
+        app->getScene().getCamera().moveCamera(xpos, ypos);
     }
 
     app->getSelectionManager().updateHover(xpos, ypos, app->getGui(), app->getRenderer());
@@ -155,6 +157,8 @@ void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, doubl
 
 void InputHandler::mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
+    (void)xoffset;
+
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
     if (!app)
         return;
@@ -162,10 +166,5 @@ void InputHandler::mouseScrollCallback(GLFWwindow *window, double xoffset, doubl
     if (!app->getGui().isMouseInsideViewport())
         return;
 
-    Camera &camera = app->getScene().getCamera();
-
-    glm::vec3 pos = camera.getPosition();
-    pos -= static_cast<float>(yoffset) * glm::normalize(pos);
-
-    camera.setPosition(pos);
+    app->getScene().getCamera().zoomCamera(yoffset);
 }
