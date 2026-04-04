@@ -4,10 +4,13 @@
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <cmath>
 
 Camera::Camera() : strategy(std::make_unique<IsometricViewStrategy>())
 {
     strategy->apply(*this);
+    recalculateAnglesFromPosition();
 }
 
 glm::vec3 &Camera::getPosition()
@@ -48,6 +51,7 @@ const float Camera::getFovDegrees() const
 void Camera::setPosition(glm::vec3 new_position)
 {
     position = new_position;
+    recalculateAnglesFromPosition();
 }
 
 void Camera::setView(const glm::vec3 &newPosition, const glm::vec3 &newTarget, const glm::vec3 &newUp)
@@ -55,12 +59,14 @@ void Camera::setView(const glm::vec3 &newPosition, const glm::vec3 &newTarget, c
     position = newPosition;
     target = newTarget;
     up = newUp;
+    recalculateAnglesFromPosition();
 }
 
 void Camera::applyStrategy(std::unique_ptr<ICameraViewStrategy> newStrategy)
 {
     strategy = std::move(newStrategy);
     strategy->apply(*this);
+    firstMouse = true;
 }
 
 const ICameraViewStrategy *Camera::getStrategy() const
@@ -68,9 +74,56 @@ const ICameraViewStrategy *Camera::getStrategy() const
     return strategy.get();
 }
 
+void Camera::recalculateAnglesFromPosition()
+{
+    const glm::vec3 offset = position - target;
+    const float radius = glm::length(offset);
+    pitch = glm::degrees(std::asin(offset.z / radius));
+    yaw = glm::degrees(std::atan2(offset.y, offset.x));
+    firstMouse = true;
+}
+
 void Camera::moveCamera(double mouseX, double mouseY)
 {
-    glm::mat4 R = glm::rotate(glm::mat4(1.0f), glm::radians(1.0f * sensitivity), glm::vec3(1, 1, 1));
-    glm::vec3 rotated = glm::vec3(R * glm::vec4(position, 1.0f));
-    setPosition(rotated);
+    if (firstMouse)
+    {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        firstMouse = false;
+        return;
+    }
+
+    const double deltaX = (mouseX - lastMouseX);
+    const double deltaY = -(mouseY - lastMouseY);
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+
+    yaw -= deltaX * sensitivity;
+    pitch -= deltaY * sensitivity;
+    pitch = std::clamp(pitch, -89.0, 89.0);
+
+    const float radius = glm::length(position - target);
+    const float yawRad = glm::radians(static_cast<float>(yaw));
+    const float pitchRad = glm::radians(static_cast<float>(pitch));
+
+    position.x = target.x + radius * std::cos(pitchRad) * std::cos(yawRad);
+    position.y = target.y + radius * std::cos(pitchRad) * std::sin(yawRad);
+    position.z = target.z + radius * std::sin(pitchRad);
+}
+
+void Camera::zoomCamera(double scrollYOffset)
+{
+    /*
+    const glm::vec3 offset = position - target;
+    const float radius = glm::length(offset);
+
+    if (radius < 1.0f)
+    {
+        lastposition = position;
+        return;
+    }
+    */
+
+    const glm::vec3 dir = glm::normalize(target - position);
+    setPosition(position + dir * static_cast<float>(scrollYOffset));
 }
