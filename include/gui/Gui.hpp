@@ -1,13 +1,18 @@
 #pragma once
 
-#include "gui/PlacementMode.hpp"
-
 #include "imgui.h"
-
 #include <string>
 
+enum class PlacementMode
+{
+    None,
+    Triangle,
+    Rectangle,
+    Cube
+};
+
 class Application;
-class GLFWwindow;
+struct GLFWwindow;
 
 class Gui
 {
@@ -24,18 +29,18 @@ class Gui
     ImVec2 getViewportSize() const;
     void setViewportRect(const ImVec2 &pos, const ImVec2 &size);
 
-    // Add-shape dialog
+    // Add shape
     bool isAddShapeDialogOpen() const;
     void openAddShapeDialog();
     void closeAddShapeDialog();
-    bool &addShapeDialogFlag();
 
     // Placement mode
     PlacementMode getPlacementMode() const;
-    bool isAnyPlacementArmed() const;
+
     bool isTrianglePlacementArmed() const;
     bool isRectanglePlacementArmed() const;
     bool isCubePlacementArmed() const;
+    bool isAnyPlacementArmed() const;
 
     void armTrianglePlacement();
     void armRectanglePlacement();
@@ -49,15 +54,24 @@ class Gui
     void clearConsole();
     std::string &logBuffer();
 
+    // Conditional
     bool &demoWindowFlag();
+    bool &addShapeDialogFlag();
+
+    // Gizmo panel rect
+    void setGizmoPanelRect(const ImVec2 &pos, const ImVec2 &size);
+    bool isMouseInsideGizmoPanel() const;
 
   private:
-    ImVec2 viewportPos = {0.0f, 0.0f};
-    ImVec2 viewportSize = {0.0f, 0.0f};
+    ImVec2 viewportPos = ImVec2(0.0f, 0.0f);
+    ImVec2 viewportSize = ImVec2(0.0f, 0.0f);
 
-    PlacementMode placementMode = PlacementMode::None;
+    ImVec2 gizmoPanelPos = ImVec2(0.0f, 0.0f);
+    ImVec2 gizmoPanelSize = ImVec2(0.0f, 0.0f);
+
     bool showAddShapeDialog = false;
     bool showDemoWindow = false;
 
+    PlacementMode placementMode = PlacementMode::None;
     std::string consoleLog;
 };

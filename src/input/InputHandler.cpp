@@ -12,7 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/vec4.hpp>
 
-#include <iostream>
+#include "ImGuizmo.h"
 
 void InputHandler::attach(GLFWwindow *window, Application *app)
 {
@@ -36,7 +36,6 @@ glm::vec3 InputHandler::mouseLocalToWorldSpace(const Gui &gui, const Scene &scen
 
     const float ndcX = (2.0f * localX) / viewportSize.x - 1.0f;
     const float ndcY = 1.0f - (2.0f * localY) / viewportSize.y;
-    const float aspect = viewportSize.x / viewportSize.y;
 
     const glm::mat4 projection = scene.getCamera().getProjection(viewportSize);
     const glm::mat4 view = scene.getCamera().getLookAt();
@@ -91,46 +90,57 @@ void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int actio
     (void)mods;
 
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-
-    if (!app->getGui().isMouseInsideViewport())
+    if (!app)
         return;
 
-    double mouseX = 0.0, mouseY = 0.0;
+    double mouseX = 0.0;
+    double mouseY = 0.0;
     glfwGetCursorPos(window, &mouseX, &mouseY);
-
-    const glm::vec3 worldPoint = mouseLocalToWorldSpace(app->getGui(), app->getScene(), mouseX, mouseY);
-
-    if ((button == GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-    {
-        if (app->getGui().isAnyPlacementArmed())
-        {
-            app->onViewportClicked(worldPoint);
-            return;
-        }
-        app->getSelectionManager().clickSelect();
-    }
 
     if (button == GLFW_MOUSE_BUTTON_MIDDLE)
     {
         if (action == GLFW_PRESS)
-        {
             app->getInputHandler().middleMouseHeld = true;
-        }
         else if (action == GLFW_RELEASE)
-        {
             app->getInputHandler().middleMouseHeld = false;
-        }
+
+        return;
     }
+
+    if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS)
+        return;
+
+    if (app->getGui().isMouseInsideGizmoPanel())
+        return;
+
+    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+        return;
+
+    if (!app->getGui().isMouseInsideViewport())
+        return;
+
+    const glm::vec3 worldPoint = mouseLocalToWorldSpace(app->getGui(), app->getScene(), mouseX, mouseY);
+
+    if (app->getGui().isAnyPlacementArmed())
+    {
+        app->onViewportClicked(worldPoint);
+        return;
+    }
+
+    if (app->getSelectionManager().hoveredId() != 0)
+        app->getSelectionManager().clickSelect();
+    else
+        app->getSelectionManager().clearSelection();
 }
 
 void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
 {
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-    double mouseX = 0.0, mouseY = 0.0;
-    glfwGetCursorPos(window, &mouseX, &mouseY);
-
     if (!app)
         return;
+
+    double mouseX = 0.0, mouseY = 0.0;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
 
     if (!app->getGui().isMouseInsideViewport())
         return;
@@ -138,7 +148,6 @@ void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, doubl
     if (app->getInputHandler().middleMouseHeld)
     {
         app->getScene().getCamera().moveCamera(mouseX, mouseY);
-        std::cout << "help" << std::endl;
     }
 
     app->getSelectionManager().updateHover(xpos, ypos, app->getGui(), app->getRenderer());
@@ -147,7 +156,6 @@ void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, doubl
 void InputHandler::mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
-
     if (!app)
         return;
 
@@ -158,13 +166,6 @@ void InputHandler::mouseScrollCallback(GLFWwindow *window, double xoffset, doubl
 
     glm::vec3 pos = camera.getPosition();
     pos -= static_cast<float>(yoffset) * glm::normalize(pos);
-
-    /*
-    if (glm::all(glm::lessThan(pos, glm::normalize(pos))))
-    {
-        pos = glm::normalize(pos);
-    }
-    */
 
     camera.setPosition(pos);
 }

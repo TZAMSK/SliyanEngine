@@ -50,6 +50,13 @@ void Gui::draw(Application &app)
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
 
+    {
+        ImVec2 viewportPos = getViewportPos();
+        ImVec2 panelPos = ImVec2(viewportPos.x + 10.0f, viewportPos.y + 10.0f);
+        ImVec2 panelSize = ImVec2(110.0f, 115.0f);
+        setGizmoPanelRect(panelPos, panelSize);
+    }
+
     app.getRenderer().getGizmoRenderer().draw(app, app.getGizmo());
     drawGizmoPanel(*this, app);
 
@@ -85,6 +92,7 @@ ImVec2 Gui::getViewportPos() const
 {
     return viewportPos;
 }
+
 ImVec2 Gui::getViewportSize() const
 {
     return viewportSize;
@@ -102,10 +110,12 @@ bool Gui::isAddShapeDialogOpen() const
 {
     return showAddShapeDialog;
 }
+
 void Gui::openAddShapeDialog()
 {
     showAddShapeDialog = true;
 }
+
 void Gui::closeAddShapeDialog()
 {
     showAddShapeDialog = false;
@@ -122,14 +132,17 @@ bool Gui::isTrianglePlacementArmed() const
 {
     return placementMode == PlacementMode::Triangle;
 }
+
 bool Gui::isRectanglePlacementArmed() const
 {
     return placementMode == PlacementMode::Rectangle;
 }
+
 bool Gui::isCubePlacementArmed() const
 {
     return placementMode == PlacementMode::Cube;
 }
+
 bool Gui::isAnyPlacementArmed() const
 {
     return placementMode != PlacementMode::None;
@@ -170,26 +183,46 @@ void Gui::setLog(const std::string &value)
 {
     consoleLog = value;
 }
+
 void Gui::appendLog(const std::string &value)
 {
     consoleLog += value;
 }
+
 void Gui::clearConsole()
 {
     consoleLog.clear();
 }
+
 std::string &Gui::logBuffer()
 {
     return consoleLog;
 }
 
-// Condional
+// Conditional
 
 bool &Gui::demoWindowFlag()
 {
     return showDemoWindow;
 }
+
 bool &Gui::addShapeDialogFlag()
 {
     return showAddShapeDialog;
+}
+
+// Gizmo panel rect
+
+void Gui::setGizmoPanelRect(const ImVec2 &pos, const ImVec2 &size)
+{
+    gizmoPanelPos = pos;
+    gizmoPanelSize = size;
+}
+
+bool Gui::isMouseInsideGizmoPanel() const
+{
+    const ImVec2 mouse = ImGui::GetMousePos();
+
+    return mouse.x >= gizmoPanelPos.x && mouse.y >= gizmoPanelPos.y && mouse.x < gizmoPanelPos.x + gizmoPanelSize.x &&
+           mouse.y < gizmoPanelPos.y + gizmoPanelSize.y;
 }
