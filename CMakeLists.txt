@@ -91,6 +91,8 @@ add_executable(sliyan_engine
     src/scene/shapes/Shape2D.cpp
     src/scene/shapes/Shape3D.cpp
 
+    src/util/readFile.cpp
+
     src/glad.c
 )
 

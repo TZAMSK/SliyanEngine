@@ -13,8 +13,11 @@ class Triangle : public Shape2D
     {
         return ShapeType::Triangle;
     }
-    const glm::vec3 &getVertex(int index) const;
+    const float *getVertexData() const override;
+    size_t getFloatCount() const override;
 
   private:
-    glm::vec3 vertices[3];
+    static constexpr float kVerts[] = {
+        0.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f,
+    };
 };

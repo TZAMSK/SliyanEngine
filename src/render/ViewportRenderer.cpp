@@ -2,8 +2,12 @@
 
 #include "scene/Scene.hpp"
 #include "scene/shapes/Shape.hpp"
+#include "scene/shapes/Triangle.hpp"
+#include "scene/shapes/Rectangle.hpp"
+#include "scene/shapes/Cube.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "app/Application.hpp"
+#include "util/readFile.hpp"
 
 #include <glad/glad.h>
 
@@ -13,228 +17,54 @@
 namespace
 {
 
-const char *vertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
-
-out vec3 vColor;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 proj;
-
-uniform vec3 shapeColor;
-uniform int useVertexColor;
-
-void main()
-{
-    vColor = (useVertexColor == 1) ? aColor : shapeColor;
-    gl_Position = proj * view * model * vec4(aPos, 1.0);
-}
-)";
-
-const char *fragmentShaderSource = R"(
-#version 330 core
-
-in vec3 vColor;
-
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out uint outObjectID;
-
-uniform uint objectID;
-uniform int isHovered;
-uniform int isSelected;
-
-void main()
-{
-    vec3 color = vColor;
-
-    if (isSelected == 1 || isHovered == 1)
-        color = mix(color, vec3(1.0, 0.72, 0.25), 0.05);
-
-    outColor = vec4(color, 1.0);
-    outObjectID = objectID;
-}
-)";
-
-const char *outlineVertexShaderSource = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 proj;
-
-void main()
-{
-    gl_Position = proj * view * model * vec4(aPos, 1.0);
-}
-)";
-
-const char *outlineFragmentShaderSource = R"(
-#version 330 core
-
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out uint outObjectID;
-
-void main()
-{
-    outColor = vec4(1.0, 0.45, 0.05, 1.0);   // vivid orange
-    outObjectID = 0u;
-}
-)";
-
-const float kTriangleVerts[] = {
-    0.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f,
-};
-
-const float kRectVerts[] = {
-    -1.0f, -0.75f, 0.0f, 1.0f, -0.75f, 0.0f, 1.0f,  0.75f, 0.0f,
-
-    -1.0f, -0.75f, 0.0f, 1.0f, 0.75f,  0.0f, -1.0f, 0.75f, 0.0f,
-};
-
-const float kCubeVerts[] = {
-    // -Z face
-    -1,
-    -1,
-    -1,
-    1,
-    -1,
-    -1,
-    1,
-    1,
-    -1,
-    -1,
-    -1,
-    -1,
-    1,
-    1,
-    -1,
-    -1,
-    1,
-    -1,
-    // +Z face
-    -1,
-    -1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    -1,
-    1,
-    -1,
-    -1,
-    1,
-    -1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    // -Y face
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    1,
-    1,
-    -1,
-    1,
-    -1,
-    -1,
-    -1,
-    1,
-    -1,
-    1,
-    1,
-    -1,
-    -1,
-    // +Y face
-    -1,
-    1,
-    -1,
-    1,
-    1,
-    1,
-    -1,
-    1,
-    1,
-    -1,
-    1,
-    -1,
-    1,
-    1,
-    -1,
-    1,
-    1,
-    1,
-    // -X face
-    -1,
-    -1,
-    -1,
-    -1,
-    1,
-    -1,
-    -1,
-    1,
-    1,
-    -1,
-    -1,
-    -1,
-    -1,
-    1,
-    1,
-    -1,
-    -1,
-    1,
-    // +X face
-    1,
-    -1,
-    -1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    -1,
-    1,
-    -1,
-    -1,
-    1,
-    -1,
-    1,
-    1,
-    1,
-    1,
-};
-
 GLuint makeVao(const float *verts, GLsizeiptr byteSize)
 {
     GLuint vao = 0, vbo = 0;
+
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
+
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, byteSize, verts, GL_STATIC_DRAW);
+
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
+
     glBindVertexArray(0);
     glDeleteBuffers(1, &vbo);
+
     return vao;
+}
+
+GLuint vaoFor(ShapeType type, GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao)
+{
+    switch (type)
+    {
+    case ShapeType::Triangle:
+        return triangleVao;
+    case ShapeType::Rectangle:
+        return rectangleVao;
+    case ShapeType::Cube:
+        return cubeVao;
+    }
+
+    return triangleVao;
 }
 
 } // namespace
 
 bool ViewportRenderer::init()
 {
-    if (!shader.create(vertexShaderSource, fragmentShaderSource))
+    std::string vertexShaderSource = loadShaderAsString("src/core/shaders/vertexShader.vert");
+    std::string fragmentShaderSource = loadShaderAsString("src/core/shaders/fragmentShader.frag");
+    std::string outlineVertexShaderSource = loadShaderAsString("src/core/shaders/outlineVertexShader.vert");
+    std::string outlineFragmentShaderSource = loadShaderAsString("src/core/shaders/outlineFragmentShader.frag");
+
+    if (!shader.create(vertexShaderSource.c_str(), fragmentShaderSource.c_str()))
         return false;
 
-    if (!outlineShader.create(outlineVertexShaderSource, outlineFragmentShaderSource))
+    if (!outlineShader.create(outlineVertexShaderSource.c_str(), outlineFragmentShaderSource.c_str()))
         return false;
 
     if (!gridRenderer.init())
@@ -243,9 +73,16 @@ bool ViewportRenderer::init()
     if (!gizmoRenderer.init())
         return false;
 
-    triangleVao = makeVao(kTriangleVerts, sizeof(kTriangleVerts));
-    rectangleVao = makeVao(kRectVerts, sizeof(kRectVerts));
-    cubeVao = makeVao(kCubeVerts, sizeof(kCubeVerts));
+    const Triangle triangle(glm::vec3(0.0f), glm::vec4(1.0f));
+    const Rectangle rectangle(glm::vec3(0.0f), glm::vec4(1.0f));
+    const Cube cube(glm::vec3(0.0f), glm::vec4(1.0f));
+
+    triangleVao = makeVao(triangle.getVertexData(), static_cast<GLsizeiptr>(triangle.getFloatCount() * sizeof(float)));
+
+    rectangleVao =
+        makeVao(rectangle.getVertexData(), static_cast<GLsizeiptr>(rectangle.getFloatCount() * sizeof(float)));
+
+    cubeVao = makeVao(cube.getVertexData(), static_cast<GLsizeiptr>(cube.getFloatCount() * sizeof(float)));
 
     return createFramebuffer(framebufferWidth, framebufferHeight);
 }
@@ -296,16 +133,19 @@ void ViewportRenderer::destroyFramebuffer()
         glDeleteRenderbuffers(1, &rbo);
         rbo = 0;
     }
+
     if (colorTexture)
     {
         glDeleteTextures(1, &colorTexture);
         colorTexture = 0;
     }
+
     if (idTexture)
     {
         glDeleteTextures(1, &idTexture);
         idTexture = 0;
     }
+
     if (fbo)
     {
         glDeleteFramebuffers(1, &fbo);
@@ -317,40 +157,12 @@ void ViewportRenderer::resizeFramebuffer(int width, int height)
 {
     if (width <= 0 || height <= 0)
         return;
+
     if (width == framebufferWidth && height == framebufferHeight)
         return;
+
     destroyFramebuffer();
     createFramebuffer(width, height);
-}
-
-static void bindShapeVao(GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao, ShapeType type)
-{
-    switch (type)
-    {
-    case ShapeType::Triangle:
-        glBindVertexArray(triangleVao);
-        break;
-    case ShapeType::Rectangle:
-        glBindVertexArray(rectangleVao);
-        break;
-    case ShapeType::Cube:
-        glBindVertexArray(cubeVao);
-        break;
-    }
-}
-
-static int vertexCountFor(ShapeType type)
-{
-    switch (type)
-    {
-    case ShapeType::Triangle:
-        return 3;
-    case ShapeType::Rectangle:
-        return 6;
-    case ShapeType::Cube:
-        return 36;
-    }
-    return 3;
 }
 
 void ViewportRenderer::render(Application &app)
@@ -361,7 +173,6 @@ void ViewportRenderer::render(Application &app)
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, framebufferWidth, framebufferHeight);
 
-    // Clear colour, depth, and stencil
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
 
@@ -371,7 +182,6 @@ void ViewportRenderer::render(Application &app)
     GLuint clearID = 0;
     glClearBufferuiv(GL_COLOR, 1, &clearID);
 
-    // Camera matrices
     const glm::mat4 view =
         glm::lookAt(scene.getCamera().getPosition(), scene.getCamera().getTarget(), scene.getCamera().getUp());
 
@@ -379,14 +189,12 @@ void ViewportRenderer::render(Application &app)
         glm::perspective(glm::radians(scene.getCamera().getFovDegrees()),
                          static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight), 0.1f, 200.0f);
 
-    // Stencil
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     shader.use();
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
-    // Grid
     glStencilFunc(GL_ALWAYS, 0, 0xFF);
     glStencilMask(0xFF);
     glUniform1ui(glGetUniformLocation(shader.id(), "objectID"), 0);
@@ -415,8 +223,8 @@ void ViewportRenderer::render(Application &app)
         glUniform1i(glGetUniformLocation(shader.id(), "isSelected"), selected ? 1 : 0);
         glUniform3f(glGetUniformLocation(shader.id(), "shapeColor"), c.r, c.g, c.b);
 
-        bindShapeVao(triangleVao, rectangleVao, cubeVao, shape.getType());
-        glDrawArrays(GL_TRIANGLES, 0, vertexCountFor(shape.getType()));
+        glBindVertexArray(vaoFor(shape.getType(), triangleVao, rectangleVao, cubeVao));
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(shape.getVertexCount()));
     }
 
     // Orange outline
@@ -434,14 +242,14 @@ void ViewportRenderer::render(Application &app)
             glStencilMask(0x00);
             glDisable(GL_DEPTH_TEST);
 
-            const float outlineScale = 1.05f;
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), sel->getPosition());
-            model = glm::scale(model, glm::vec3(outlineScale));
+            glm::mat4 outlineModel = sel->getTransform();
+            outlineModel = glm::scale(outlineModel, glm::vec3(1.03f));
 
-            glUniformMatrix4fv(glGetUniformLocation(outlineShader.id(), "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(outlineShader.id(), "model"), 1, GL_FALSE,
+                               glm::value_ptr(outlineModel));
 
-            bindShapeVao(triangleVao, rectangleVao, cubeVao, sel->getType());
-            glDrawArrays(GL_TRIANGLES, 0, vertexCountFor(sel->getType()));
+            glBindVertexArray(vaoFor(sel->getType(), triangleVao, rectangleVao, cubeVao));
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(sel->getVertexCount()));
 
             glStencilMask(0xFF);
             glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -468,6 +276,7 @@ void ViewportRenderer::shutdown()
             vao = 0;
         }
     };
+
     deleteVao(triangleVao);
     deleteVao(rectangleVao);
     deleteVao(cubeVao);
@@ -477,18 +286,22 @@ GLuint ViewportRenderer::getColorTexture() const
 {
     return colorTexture;
 }
+
 GLuint ViewportRenderer::getFbo() const
 {
     return fbo;
 }
+
 int ViewportRenderer::getWidth() const
 {
     return framebufferWidth;
 }
+
 int ViewportRenderer::getHeight() const
 {
     return framebufferHeight;
 }
+
 float *ViewportRenderer::backgroundColor()
 {
     return clearColor;

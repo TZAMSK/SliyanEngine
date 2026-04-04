@@ -11,4 +11,13 @@ class Rectangle : public Shape2D
     {
         return ShapeType::Rectangle;
     }
+
+    const float *getVertexData() const override;
+    size_t getFloatCount() const override;
+
+  private:
+    static constexpr float kVerts[] = {
+        -1.0f, -0.75f, 0.0f, 1.0f, -0.75f, 0.0f, 1.0f,  0.75f, 0.0f,
+        -1.0f, -0.75f, 0.0f, 1.0f, 0.75f,  0.0f, -1.0f, 0.75f, 0.0f,
+    };
 };

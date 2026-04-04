@@ -9,6 +9,7 @@ Current build has:
 
 - Viewport Renderer
 - GridAxis Renderer
+- Selectable shapes
 - Gizmo
   - Translation
   - Rotation
@@ -29,5 +30,6 @@ Current build has:
 Tools used:
 
 - Dear ImGui
+- ImGuizmo
 - OpenGL
 - Neovim
