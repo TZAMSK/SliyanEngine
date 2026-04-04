@@ -5,6 +5,7 @@
 #include "scene/shapes/Triangle.hpp"
 #include "scene/shapes/Rectangle.hpp"
 #include "scene/shapes/Cube.hpp"
+#include "scene/shapes/Circle.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "app/Application.hpp"
 #include "util/readFile.hpp"
@@ -32,12 +33,12 @@ GLuint makeVao(const float *verts, GLsizeiptr byteSize)
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(0);
-    glDeleteBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return vao;
 }
 
-GLuint vaoFor(ShapeType type, GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao)
+GLuint staticVaoFor(ShapeType type, GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao)
 {
     switch (type)
     {
@@ -47,9 +48,22 @@ GLuint vaoFor(ShapeType type, GLuint triangleVao, GLuint rectangleVao, GLuint cu
         return rectangleVao;
     case ShapeType::Cube:
         return cubeVao;
+    case ShapeType::Circle:
+        return 0;
     }
 
-    return triangleVao;
+    return 0;
+}
+
+GLuint vaoForShape(const Shape &shape, GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao)
+{
+    if (shape.getType() == ShapeType::Circle)
+    {
+        const Circle *circle = dynamic_cast<const Circle *>(&shape);
+        return circle ? circle->getVao() : 0;
+    }
+
+    return staticVaoFor(shape.getType(), triangleVao, rectangleVao, cubeVao);
 }
 
 } // namespace
@@ -73,7 +87,7 @@ bool ViewportRenderer::init()
     if (!gizmoRenderer.init())
         return false;
 
-    const Triangle triangle(glm::vec3(0.0f), glm::vec4(1.0f));
+    const Triangle triangle(glm::vec4(0.0f), glm::vec4(1.0f));
     const Rectangle rectangle(glm::vec3(0.0f), glm::vec4(1.0f));
     const Cube cube(glm::vec3(0.0f), glm::vec4(1.0f));
 
@@ -195,8 +209,9 @@ void ViewportRenderer::render(Application &app)
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
-    glStencilFunc(GL_ALWAYS, 0, 0xFF);
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);
     glStencilMask(0xFF);
+
     glUniform1ui(glGetUniformLocation(shader.id(), "objectID"), 0);
     glUniform1i(glGetUniformLocation(shader.id(), "isHovered"), 0);
     glUniform1i(glGetUniformLocation(shader.id(), "isSelected"), 0);
@@ -211,8 +226,8 @@ void ViewportRenderer::render(Application &app)
         const bool selected = (shape.id == selection.selectedId());
         const bool hovered = (shape.id == selection.hoveredId());
 
-        glStencilFunc(GL_ALWAYS, selected ? 1 : 0, 0xFF);
-        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(selected ? 0xFF : 0x00);
 
         const glm::mat4 model = shape.getTransform();
         const glm::vec4 &c = shape.getColor();
@@ -223,11 +238,13 @@ void ViewportRenderer::render(Application &app)
         glUniform1i(glGetUniformLocation(shader.id(), "isSelected"), selected ? 1 : 0);
         glUniform3f(glGetUniformLocation(shader.id(), "shapeColor"), c.r, c.g, c.b);
 
-        glBindVertexArray(vaoFor(shape.getType(), triangleVao, rectangleVao, cubeVao));
+        const GLuint vao = vaoForShape(shape, triangleVao, rectangleVao, cubeVao);
+        if (vao == 0)
+            continue;
+
+        glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(shape.getVertexCount()));
     }
-
-    // Orange outline
 
     if (selection.hasSelection())
     {
@@ -248,8 +265,12 @@ void ViewportRenderer::render(Application &app)
             glUniformMatrix4fv(glGetUniformLocation(outlineShader.id(), "model"), 1, GL_FALSE,
                                glm::value_ptr(outlineModel));
 
-            glBindVertexArray(vaoFor(sel->getType(), triangleVao, rectangleVao, cubeVao));
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(sel->getVertexCount()));
+            const GLuint vao = vaoForShape(*sel, triangleVao, rectangleVao, cubeVao);
+            if (vao != 0)
+            {
+                glBindVertexArray(vao);
+                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(sel->getVertexCount()));
+            }
 
             glStencilMask(0xFF);
             glStencilFunc(GL_ALWAYS, 0, 0xFF);

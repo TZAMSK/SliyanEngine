@@ -39,6 +39,7 @@ class ViewportRenderer
     GLuint triangleVao = 0;
     GLuint rectangleVao = 0;
     GLuint cubeVao = 0;
+    GLuint circleVao = 0;
 
     GLuint fbo = 0;
     GLuint colorTexture = 0;

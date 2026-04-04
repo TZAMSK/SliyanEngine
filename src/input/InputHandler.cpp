@@ -73,15 +73,6 @@ void InputHandler::keyCallback(GLFWwindow *window, int key, int scancode, int ac
         app->executeCommand(CommandId::OpenAddShapeDialog);
         return;
     }
-
-    if (key == GLFW_KEY_1)
-        app->executeCommand(CommandId::CameraIsometric);
-    else if (key == GLFW_KEY_2)
-        app->executeCommand(CommandId::CameraTop);
-    else if (key == GLFW_KEY_3)
-        app->executeCommand(CommandId::CameraFront);
-    else if (key == GLFW_KEY_4)
-        app->executeCommand(CommandId::CameraSide);
 }
 
 void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)

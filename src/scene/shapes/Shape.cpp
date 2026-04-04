@@ -9,14 +9,29 @@ Shape::Shape(const glm::vec3 &position, const glm::vec4 &color) : color(color), 
 {
 }
 
+glm::vec3 &Shape::getPosition()
+{
+    return translation;
+}
+
 const glm::vec3 &Shape::getPosition() const
 {
     return translation;
 }
 
+glm::vec3 &Shape::getRotation()
+{
+    return rotation;
+}
+
 const glm::vec3 &Shape::getRotation() const
 {
     return rotation;
+}
+
+glm::vec3 &Shape::getScale()
+{
+    return scale;
 }
 
 const glm::vec3 &Shape::getScale() const

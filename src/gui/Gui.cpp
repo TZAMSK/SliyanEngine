@@ -138,6 +138,11 @@ bool Gui::isRectanglePlacementArmed() const
     return placementMode == PlacementMode::Rectangle;
 }
 
+bool Gui::isCirclePlacementArmed() const
+{
+    return placementMode == PlacementMode::Circle;
+}
+
 bool Gui::isCubePlacementArmed() const
 {
     return placementMode == PlacementMode::Cube;
@@ -157,6 +162,12 @@ void Gui::armTrianglePlacement()
 void Gui::armRectanglePlacement()
 {
     placementMode = PlacementMode::Rectangle;
+    showAddShapeDialog = false;
+}
+
+void Gui::armCirclePlacement()
+{
+    placementMode = PlacementMode::Circle;
     showAddShapeDialog = false;
 }
 
