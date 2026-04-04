@@ -1,16 +1,20 @@
 #include "app/Application.hpp"
 #include "gui/Gui.hpp"
+#include "scene/commands/CommandId.hpp"
 
 #include "imgui.h"
 
 void drawGizmoPanel(Gui &gui, Application &app)
 {
     ImVec2 viewportPos = app.getGui().getViewportPos();
-    ImVec2 panel = ImVec2(viewportPos.x + 10.0f, viewportPos.y + 10.0f);
+    ImVec2 panelPos = ImVec2(viewportPos.x + 10.0f, viewportPos.y + 10.0f);
+    ImVec2 panelSize = ImVec2(110.0f, 115.0f);
 
-    ImGui::SetNextWindowPos(panel, ImGuiCond_Always);
+    gui.setGizmoPanelRect(panelPos, panelSize);
+
+    ImGui::SetNextWindowPos(panelPos, ImGuiCond_Always);
     ImGui::SetNextWindowBgAlpha(0.8f);
-    ImGui::SetNextWindowSize(ImVec2(110.0f, 115.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(panelSize, ImGuiCond_Always);
 
     ImGui::Begin("##gizmo_panel", nullptr,
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
@@ -19,8 +23,10 @@ void drawGizmoPanel(Gui &gui, Application &app)
 
     if (ImGui::Button("Translation", ImVec2(-1, 0)))
         app.executeCommand(CommandId::GizmoTranslation);
+
     if (ImGui::Button("Rotation", ImVec2(-1, 0)))
         app.executeCommand(CommandId::GizmoRotation);
+
     if (ImGui::Button("Scale", ImVec2(-1, 0)))
         app.executeCommand(CommandId::GizmoScale);
 

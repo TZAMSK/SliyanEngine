@@ -9,8 +9,14 @@ Current build has:
 
 - Viewport Renderer
 - GridAxis Renderer
+- Gizmo
+  - Translation
+  - Rotation
+  - Scale
 - Add Shapes
-  - Triangles
+  - Triangle
+  - Cube
+  - Rectangle
   - List shapes added in UI (Scene Panel)
 - Camera system
   - Isometric

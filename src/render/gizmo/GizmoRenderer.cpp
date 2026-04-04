@@ -1,20 +1,12 @@
 #include "render/gizmo/GizmoRenderer.hpp"
 #include "app/Application.hpp"
 #include "render/gizmo/Gizmo.hpp"
-#include "gui/GuiLayout.hpp"
 
 #include "imgui.h"
 #include "ImGuizmo.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
-
-enum class Transforms
-{
-    Translation,
-    Rotation,
-    Scale
-};
 
 bool GizmoRenderer::init()
 {
@@ -29,14 +21,25 @@ void GizmoRenderer::draw(Application &app, Gizmo &gizmo) const
     if (gizmoSize.x <= 0.0f || gizmoSize.y <= 0.0f)
         return;
 
+    const bool hasSelection = app.getSelectionManager().hasSelection();
+
+    // If mouse is over the gizmo panel, let the panel receive the click.
+    const bool mouseOverGizmoPanel = app.getGui().isMouseInsideGizmoPanel();
+
+    const bool gizmoNeedsInput = !mouseOverGizmoPanel && (hasSelection || ImGuizmo::IsOver() || ImGuizmo::IsUsing());
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground |
+                             ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+
+    if (!gizmoNeedsInput)
+        flags |= ImGuiWindowFlags_NoInputs;
+
     ImGui::SetNextWindowPos(gizmoPos);
     ImGui::SetNextWindowSize(gizmoSize);
     ImGui::SetNextWindowBgAlpha(0.0f);
-    ImGui::Begin("##gizmo_host", nullptr,
-                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
-                     ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse |
-                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground |
-                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+    ImGui::Begin("##gizmo_host", nullptr, flags);
 
     ImGuizmo::SetDrawlist();
     ImGuizmo::SetRect(gizmoPos.x, gizmoPos.y, gizmoSize.x, gizmoSize.y);
