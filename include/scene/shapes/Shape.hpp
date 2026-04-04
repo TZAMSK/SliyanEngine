@@ -1,4 +1,5 @@
 #pragma once
+
 #include "scene/shapes/ShapeType.hpp"
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -11,8 +12,11 @@ class Shape
     virtual ~Shape() = default;
     virtual ShapeType getType() const = 0;
 
+    glm::vec3 &getPosition();
     const glm::vec3 &getPosition() const;
+    glm::vec3 &getRotation();
     const glm::vec3 &getRotation() const;
+    glm::vec3 &getScale();
     const glm::vec3 &getScale() const;
 
     void setPosition(const glm::vec3 &pos);

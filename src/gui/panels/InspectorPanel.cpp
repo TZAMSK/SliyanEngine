@@ -6,6 +6,7 @@
 #include "scene/Scene.hpp"
 #include "scene/shapes/Shape.hpp"
 #include "scene/selection/SelectionManager.hpp"
+#include "scene/shapes/Circle.hpp"
 
 #include "imgui.h"
 
@@ -17,6 +18,8 @@ static const char *shapeTypeName(ShapeType t)
         return "Triangle";
     case ShapeType::Rectangle:
         return "Rectangle";
+    case ShapeType::Circle:
+        return "Circle";
     case ShapeType::Cube:
         return "Cube";
     }
@@ -66,19 +69,105 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
             ImGui::Text("Selected: %s  (id %u)", shapeTypeName(sel->getType()), sel->id);
             ImGui::Separator();
 
-            ImGui::Text("Position: %.2f, %.2f, %.2f", sel->getPosition().x, sel->getPosition().y, sel->getPosition().z);
+            // Pos
+            ImGui::Text("Position: ");
+            glm::vec3 pos = sel->getPosition();
 
+            ImGui::PushID("Position");
+
+            ImGui::Text("X");
+            ImGui::SameLine();
+            ImGui::InputFloat("##X", &pos.x);
+
+            ImGui::Text("Y");
+            ImGui::SameLine();
+            ImGui::InputFloat("##Y", &pos.y);
+
+            ImGui::Text("Z");
+            ImGui::SameLine();
+            ImGui::InputFloat("##Z", &pos.z);
+
+            ImGui::PopID();
+
+            sel->setPosition(pos);
+
+            // Rotation
+            ImGui::Text("Rotation: ");
+            glm::vec3 rot = sel->getRotation();
+
+            ImGui::PushID("Rotation");
+
+            ImGui::Text("X");
+            ImGui::SameLine();
+            ImGui::InputFloat("##X", &rot.x);
+
+            ImGui::Text("Y");
+            ImGui::SameLine();
+            ImGui::InputFloat("##Y", &rot.y);
+
+            ImGui::Text("Z");
+            ImGui::SameLine();
+            ImGui::InputFloat("##Z", &rot.z);
+
+            ImGui::PopID();
+
+            sel->setRotation(rot);
+
+            // Scale
+            ImGui::Text("Scale: ");
+            glm::vec3 scale = sel->getScale();
+
+            ImGui::PushID("Scale");
+
+            ImGui::Text("X");
+            ImGui::SameLine();
+            ImGui::InputFloat("##X", &scale.x);
+
+            ImGui::Text("Y");
+            ImGui::SameLine();
+            ImGui::InputFloat("##Y", &scale.y);
+
+            ImGui::Text("Z");
+            ImGui::SameLine();
+            ImGui::InputFloat("##Z", &scale.z);
+
+            ImGui::PopID();
+
+            sel->setScale(scale);
+
+            // Color
+            ImGui::Text("Color:");
             float col[4] = {
                 sel->getColor().r,
                 sel->getColor().g,
                 sel->getColor().b,
                 sel->getColor().a,
             };
-            if (ImGui::ColorEdit4("Color##sel", col))
+            if (ImGui::ColorEdit4("", col))
             {
                 sel->setColor(glm::vec4(col[0], col[1], col[2], col[3]));
             }
-            // ImGui::SliderFloat("float", sel->getPosition().x, 0.0f, 1.0f);
+
+            // If Circle
+            if (sel->getType() == ShapeType::Circle)
+            {
+                Circle *circle = dynamic_cast<Circle *>(sel);
+                float radius = circle->getRadius();
+
+                ImGui::Text("Radius: ");
+                if (ImGui::InputFloat("##radius", &radius, 1.0f, 1.0f, "%.3f"))
+                {
+                    circle->setRadius(radius);
+                }
+
+                int segments = circle->getNbrSegments();
+
+                ImGui::Text("Segments: ");
+                if (ImGui::InputInt("##segments", &segments))
+                {
+                    circle->setNbrSegments(segments);
+                }
+            }
         }
     }
 

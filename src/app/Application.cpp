@@ -10,6 +10,7 @@
 #include "scene/commands/AddTriangleModeCommand.hpp"
 #include "scene/commands/AddRectangleModeCommand.hpp"
 #include "scene/commands/AddCubeModeCommand.hpp"
+#include "scene/commands/AddCircleModeCommand.hpp"
 #include "scene/commands/DisableAddShapeModeCommand.hpp"
 #include "scene/commands/OpenAddShapeDialogCommand.hpp"
 #include "scene/commands/SetCameraViewCommand.hpp"
@@ -113,6 +114,7 @@ void Application::buildAddShapeCommands()
     commands.emplace(CommandId::CloseAddShapeDialog, std::make_unique<DisableAddShapeModeCommand>(gui));
     commands.emplace(CommandId::AddTriangleMode, std::make_unique<AddTriangleModeCommand>(gui));
     commands.emplace(CommandId::AddRectangleMode, std::make_unique<AddRectangleModeCommand>(gui));
+    commands.emplace(CommandId::AddCircleMode, std::make_unique<AddCircleModeCommand>(gui));
     commands.emplace(CommandId::AddCubeMode, std::make_unique<AddCubeModeCommand>(gui));
 }
 
@@ -166,6 +168,11 @@ void Application::onViewportClicked(const glm::vec3 &worldPoint)
     {
         scene.addRectangleAt(worldPoint, kDefaultColor);
         log << "Added Rectangle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
+    }
+    else if (mode == PlacementMode::Circle)
+    {
+        scene.addCircleAt(worldPoint, kDefaultColor, 2.0f, 10);
+        log << "Added Circle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
     else if (mode == PlacementMode::Cube)
     {

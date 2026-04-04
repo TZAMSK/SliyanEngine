@@ -2,6 +2,7 @@
 
 #include "scene/shapes/Triangle.hpp"
 #include "scene/shapes/Rectangle.hpp"
+#include "scene/shapes/Circle.hpp"
 #include "scene/shapes/Cube.hpp"
 
 Camera &Scene::getCamera()
@@ -37,6 +38,11 @@ void Scene::addTriangleAt(const glm::vec3 &position, const glm::vec4 &color)
 void Scene::addRectangleAt(const glm::vec3 &position, const glm::vec4 &color)
 {
     shapes.push_back(std::make_unique<Rectangle>(position, color));
+}
+
+void Scene::addCircleAt(const glm::vec3 &position, const glm::vec4 &color, const float &radius, const int &segments)
+{
+    shapes.push_back(std::make_unique<Circle>(position, color, radius, segments));
 }
 
 void Scene::addCubeAt(const glm::vec3 &position, const glm::vec4 &color)

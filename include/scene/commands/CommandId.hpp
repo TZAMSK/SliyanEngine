@@ -8,6 +8,7 @@ enum class CommandId
     AddTriangleMode,
     AddRectangleMode,
     AddCubeMode,
+    AddCircleMode,
 
     // Camera
     CameraIsometric,

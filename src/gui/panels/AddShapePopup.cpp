@@ -37,5 +37,10 @@ void drawAddShapePopup(Gui &gui, Application &app)
         app.executeCommand(CommandId::AddCubeMode);
     }
 
+    if (ImGui::Button("Circle"))
+    {
+        app.executeCommand(CommandId::AddCircleMode);
+    }
+
     ImGui::End();
 }

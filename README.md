@@ -16,15 +16,14 @@ Current build has:
   - Scale
 - Add Shapes
   - Triangle
-  - Cube
+  - Circle
   - Rectangle
-  - List shapes added in UI (Scene Panel)
+  - Cube
 - Camera system
   - Isometric
   - Top (XY) for future 2D implementations
   - Front (XZ) and Side (YZ)
 - Console
-  - Message actions
 - UI
 
 Tools used:

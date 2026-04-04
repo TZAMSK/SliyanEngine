@@ -14,6 +14,8 @@ static const char *shapeTypeName(ShapeType t)
         return "Triangle";
     case ShapeType::Rectangle:
         return "Rectangle";
+    case ShapeType::Circle:
+        return "Circle";
     case ShapeType::Cube:
         return "Cube";
     }
