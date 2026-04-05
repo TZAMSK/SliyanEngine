@@ -18,6 +18,8 @@ static const char *shapeTypeName(ShapeType t)
         return "Circle";
     case ShapeType::Cube:
         return "Cube";
+    case ShapeType::Sphere:
+        return "Sphere";
     }
     return "Shape";
 }

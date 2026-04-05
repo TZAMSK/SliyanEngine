@@ -15,7 +15,7 @@ void main()
 
     if (isSelected == 1 || isHovered == 1)
         color = mix(color, vec3(1.0, 0.72, 0.25), 0.05);
-
+    
     outColor = vec4(color, 1.0);
     outObjectID = objectID;
 }

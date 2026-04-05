@@ -3,6 +3,7 @@
 #include "app/Application.hpp"
 #include "gui/GuiLayout.hpp"
 #include "scene/commands/CommandId.hpp"
+#include "app/Settings.hpp"
 
 #include "imgui.h"
 
@@ -43,6 +44,18 @@ void drawToolbarPanel(Application &app)
     if (ImGui::Button("Side YZ"))
     {
         app.executeCommand(CommandId::CameraSide);
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Wireframe"))
+    {
+        app.getViewportSettings().viewMode = ViewMode::Wireframe;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Solid"))
+    {
+        app.getViewportSettings().viewMode = ViewMode::Solid;
     }
 
     ImGui::End();

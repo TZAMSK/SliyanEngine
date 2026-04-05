@@ -1,6 +1,8 @@
 #include "render/gizmo/GizmoRenderer.hpp"
 #include "app/Application.hpp"
 #include "render/gizmo/Gizmo.hpp"
+#include "scene/shapes/Circle.hpp"
+#include "scene/shapes/Sphere.hpp"
 
 #include "imgui.h"
 #include "ImGuizmo.h"
@@ -61,16 +63,62 @@ void GizmoRenderer::draw(Application &app, Gizmo &gizmo) const
         ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), gizmo.getOperation(),
                              ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
 
-        if (ImGuizmo::IsUsing())
+        const bool isUsing = ImGuizmo::IsUsing();
+
+        if (isUsing)
         {
             glm::vec3 translation, rotation, scale;
             ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(transform), glm::value_ptr(translation),
                                                   glm::value_ptr(rotation), glm::value_ptr(scale));
+
             gizmo.setTranslation(translation);
             gizmo.setRotation(rotation);
-            gizmo.setScale(scale);
+
+            if (sel->getType() == ShapeType::Circle)
+            {
+                Circle *circle = dynamic_cast<Circle *>(sel);
+
+                if (!m_wasUsingLastFrame)
+                {
+                    m_initialCircleRadius = circle->getRadius();
+                }
+
+                float uniformScale = (scale.x + scale.y) / 2.0f;
+                float newRadius = m_initialCircleRadius * uniformScale;
+
+                circle->setRadius(newRadius);
+
+                gizmo.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+            }
+            else if (sel->getType() == ShapeType::Sphere)
+            {
+                Sphere *sphere = dynamic_cast<Sphere *>(sel);
+
+                if (!m_wasUsingLastFrame)
+                {
+                    m_initialCircleRadius = sphere->getRadius();
+                }
+
+                float uniformScale = (scale.x + scale.y) / 2.0f;
+                float newRadius = m_initialCircleRadius * uniformScale;
+
+                sphere->setRadius(newRadius);
+
+                gizmo.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+            }
+            else
+            {
+                gizmo.setScale(scale);
+            }
 
             gizmo.applyTransform(*sel);
+        }
+
+        m_wasUsingLastFrame = isUsing;
+
+        if (!isUsing)
+        {
+            m_initialCircleRadius = 0.0f;
         }
     }
 

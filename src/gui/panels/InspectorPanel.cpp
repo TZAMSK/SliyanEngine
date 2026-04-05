@@ -7,6 +7,7 @@
 #include "scene/shapes/Shape.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "scene/shapes/Circle.hpp"
+#include "scene/shapes/Sphere.hpp"
 
 #include "imgui.h"
 
@@ -22,6 +23,8 @@ static const char *shapeTypeName(ShapeType t)
         return "Circle";
     case ShapeType::Cube:
         return "Cube";
+    case ShapeType::Sphere:
+        return "Sphere";
     }
     return "Shape";
 }
@@ -57,7 +60,7 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
         ImGui::Text("View mode: %s", cam.getStrategy()->name());
 
     ImGui::Spacing();
-    ImGui::Text("Placement mode: %s", gui.isTrianglePlacementArmed() ? "Armed" : "None");
+    ImGui::Text("Placement mode: %s", gui.isAnyPlacementArmed() ? "Armed" : "None");
 
     // Selected shape info
     if (selection.hasSelection())
@@ -166,6 +169,27 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
                 if (ImGui::InputInt("##segments", &segments))
                 {
                     circle->setNbrSegments(segments);
+                }
+            }
+
+            // If Sphere
+            if (sel->getType() == ShapeType::Sphere)
+            {
+                Sphere *sphere = dynamic_cast<Sphere *>(sel);
+                float radius = sphere->getRadius();
+
+                ImGui::Text("Radius: ");
+                if (ImGui::InputFloat("##radius", &radius, 1.0f, 1.0f, "%.3f"))
+                {
+                    sphere->setRadius(radius);
+                }
+
+                int segments = sphere->getNbrSegments();
+
+                ImGui::Text("Segments: ");
+                if (ImGui::InputInt("##segments", &segments))
+                {
+                    sphere->setNbrSegments(segments);
                 }
             }
         }

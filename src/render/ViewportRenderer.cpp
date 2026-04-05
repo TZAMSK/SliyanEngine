@@ -4,8 +4,9 @@
 #include "scene/shapes/Shape.hpp"
 #include "scene/shapes/Triangle.hpp"
 #include "scene/shapes/Rectangle.hpp"
-#include "scene/shapes/Cube.hpp"
 #include "scene/shapes/Circle.hpp"
+#include "scene/shapes/Cube.hpp"
+#include "scene/shapes/Sphere.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "app/Application.hpp"
 #include "util/readFile.hpp"
@@ -50,6 +51,8 @@ GLuint staticVaoFor(ShapeType type, GLuint triangleVao, GLuint rectangleVao, GLu
         return cubeVao;
     case ShapeType::Circle:
         return 0;
+    case ShapeType::Sphere:
+        return 0;
     }
 
     return 0;
@@ -61,6 +64,12 @@ GLuint vaoForShape(const Shape &shape, GLuint triangleVao, GLuint rectangleVao, 
     {
         const Circle *circle = dynamic_cast<const Circle *>(&shape);
         return circle ? circle->getVao() : 0;
+    }
+
+    if (shape.getType() == ShapeType::Sphere)
+    {
+        const Sphere *sphere = dynamic_cast<const Sphere *>(&shape);
+        return sphere ? sphere->getVao() : 0;
     }
 
     return staticVaoFor(shape.getType(), triangleVao, rectangleVao, cubeVao);
@@ -183,6 +192,7 @@ void ViewportRenderer::render(Application &app)
 {
     const Scene &scene = app.getScene();
     const SelectionManager selection = app.getSelectionManager();
+    const ViewMode viewMode = app.getViewportSettings().viewMode;
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, framebufferWidth, framebufferHeight);
@@ -243,6 +253,16 @@ void ViewportRenderer::render(Application &app)
             continue;
 
         glBindVertexArray(vao);
+
+        if (viewMode == ViewMode::Wireframe)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(shape.getVertexCount()));
     }
 

@@ -13,4 +13,8 @@ class GizmoRenderer
   private:
     unsigned int vao = 0;
     unsigned int vbo = 0;
+
+  public:
+    mutable bool m_wasUsingLastFrame = false;
+    mutable float m_initialCircleRadius = 0.0f;
 };
