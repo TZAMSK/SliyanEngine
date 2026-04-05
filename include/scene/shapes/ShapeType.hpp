@@ -5,5 +5,6 @@ enum class ShapeType
     Triangle,
     Rectangle,
     Cube,
-    Circle
+    Circle,
+    Sphere
 };

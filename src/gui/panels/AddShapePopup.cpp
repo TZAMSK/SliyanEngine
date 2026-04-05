@@ -30,6 +30,11 @@ void drawAddShapePopup(Gui &gui, Application &app)
         app.executeCommand(CommandId::AddRectangleMode);
     }
 
+    if (ImGui::Button("Circle"))
+    {
+        app.executeCommand(CommandId::AddCircleMode);
+    }
+
     ImGui::SameLine();
 
     if (ImGui::Button("Cube"))
@@ -37,9 +42,9 @@ void drawAddShapePopup(Gui &gui, Application &app)
         app.executeCommand(CommandId::AddCubeMode);
     }
 
-    if (ImGui::Button("Circle"))
+    if (ImGui::Button("Sphere"))
     {
-        app.executeCommand(CommandId::AddCircleMode);
+        app.executeCommand(CommandId::AddSphereMode);
     }
 
     ImGui::End();

@@ -7,8 +7,9 @@ enum class CommandId
     CloseAddShapeDialog,
     AddTriangleMode,
     AddRectangleMode,
-    AddCubeMode,
     AddCircleMode,
+    AddCubeMode,
+    AddSphereMode,
 
     // Camera
     CameraIsometric,

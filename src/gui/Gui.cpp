@@ -148,6 +148,11 @@ bool Gui::isCubePlacementArmed() const
     return placementMode == PlacementMode::Cube;
 }
 
+bool Gui::isSpherePlacementArmed() const
+{
+    return placementMode == PlacementMode::Sphere;
+}
+
 bool Gui::isAnyPlacementArmed() const
 {
     return placementMode != PlacementMode::None;
@@ -174,6 +179,12 @@ void Gui::armCirclePlacement()
 void Gui::armCubePlacement()
 {
     placementMode = PlacementMode::Cube;
+    showAddShapeDialog = false;
+}
+
+void Gui::armSpherePlacement()
+{
+    placementMode = PlacementMode::Sphere;
     showAddShapeDialog = false;
 }
 

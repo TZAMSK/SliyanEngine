@@ -78,6 +78,7 @@ add_executable(sliyan_engine
     src/scene/commands/AddRectangleModeCommand.cpp
     src/scene/commands/AddCircleModeCommand.cpp
     src/scene/commands/AddCubeModeCommand.cpp
+    src/scene/commands/AddSphereModeCommand.cpp
     src/scene/commands/DisableAddShapeModeCommand.cpp
     src/scene/commands/OpenAddShapeDialogCommand.cpp
     src/scene/commands/SetCameraViewCommand.cpp
@@ -87,9 +88,10 @@ add_executable(sliyan_engine
 
     src/scene/shapes/Shape.cpp
     src/scene/shapes/Triangle.cpp
-    src/scene/shapes/Cube.cpp
     src/scene/shapes/Rectangle.cpp
     src/scene/shapes/Circle.cpp
+    src/scene/shapes/Cube.cpp
+    src/scene/shapes/Sphere.cpp   
     src/scene/shapes/Shape2D.cpp
     src/scene/shapes/Shape3D.cpp
 

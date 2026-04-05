@@ -9,8 +9,9 @@
 #include "render/gizmo/ScaleGizmoStratgy.hpp"
 #include "scene/commands/AddTriangleModeCommand.hpp"
 #include "scene/commands/AddRectangleModeCommand.hpp"
-#include "scene/commands/AddCubeModeCommand.hpp"
 #include "scene/commands/AddCircleModeCommand.hpp"
+#include "scene/commands/AddCubeModeCommand.hpp"
+#include "scene/commands/AddSphereModeCommand.hpp"
 #include "scene/commands/DisableAddShapeModeCommand.hpp"
 #include "scene/commands/OpenAddShapeDialogCommand.hpp"
 #include "scene/commands/SetCameraViewCommand.hpp"
@@ -55,6 +56,16 @@ InputHandler &Application::getInputHandler()
 Gizmo &Application::getGizmo()
 {
     return gizmo;
+}
+
+ViewportSettings &Application::getViewportSettings()
+{
+    return viewportSettings;
+}
+
+const ViewportSettings &Application::getViewportSettings() const
+{
+    return viewportSettings;
 }
 
 void Application::framebufferSizeCallback(GLFWwindow *window, int width, int height)
@@ -116,6 +127,7 @@ void Application::buildAddShapeCommands()
     commands.emplace(CommandId::AddRectangleMode, std::make_unique<AddRectangleModeCommand>(gui));
     commands.emplace(CommandId::AddCircleMode, std::make_unique<AddCircleModeCommand>(gui));
     commands.emplace(CommandId::AddCubeMode, std::make_unique<AddCubeModeCommand>(gui));
+    commands.emplace(CommandId::AddSphereMode, std::make_unique<AddSphereModeCommand>(gui));
 }
 
 void Application::buildCameraCommands()
@@ -178,6 +190,11 @@ void Application::onViewportClicked(const glm::vec3 &worldPoint)
     {
         scene.addCubeAt(worldPoint, kDefaultColor);
         log << "Added Cube at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
+    }
+    else if (mode == PlacementMode::Sphere)
+    {
+        scene.addSphereAt(worldPoint, kDefaultColor, 2.0f, 10);
+        log << "Added Sphere at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
 
     gui.appendLog(log.str());

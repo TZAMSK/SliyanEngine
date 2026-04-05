@@ -8,8 +8,9 @@ enum class PlacementMode
     None,
     Triangle,
     Rectangle,
+    Circle,
     Cube,
-    Circle
+    Sphere
 };
 
 class Application;
@@ -40,14 +41,17 @@ class Gui
 
     bool isTrianglePlacementArmed() const;
     bool isRectanglePlacementArmed() const;
-    bool isCubePlacementArmed() const;
     bool isCirclePlacementArmed() const;
+
+    bool isCubePlacementArmed() const;
+    bool isSpherePlacementArmed() const;
     bool isAnyPlacementArmed() const;
 
     void armTrianglePlacement();
     void armRectanglePlacement();
     void armCirclePlacement();
     void armCubePlacement();
+    void armSpherePlacement();
     void disarmPlacement();
     void disarmTrianglePlacement();
 

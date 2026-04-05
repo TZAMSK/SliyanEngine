@@ -22,7 +22,7 @@ void Circle::rebuildMesh()
     kVerts.clear();
     kVerts.reserve(static_cast<size_t>(nbrSegments) * 9);
 
-    const float pi = 3.14159265359f;
+    const float pi = 3.14159f;
 
     for (int i = 0; i < nbrSegments; ++i)
     {

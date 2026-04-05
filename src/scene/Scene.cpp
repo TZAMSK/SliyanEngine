@@ -4,6 +4,7 @@
 #include "scene/shapes/Rectangle.hpp"
 #include "scene/shapes/Circle.hpp"
 #include "scene/shapes/Cube.hpp"
+#include "scene/shapes/Sphere.hpp"
 
 Camera &Scene::getCamera()
 {
@@ -48,6 +49,11 @@ void Scene::addCircleAt(const glm::vec3 &position, const glm::vec4 &color, const
 void Scene::addCubeAt(const glm::vec3 &position, const glm::vec4 &color)
 {
     shapes.push_back(std::make_unique<Cube>(position, color));
+}
+
+void Scene::addSphereAt(const glm::vec3 &position, const glm::vec4 &color, const float &radius, const int &segments)
+{
+    shapes.push_back(std::make_unique<Sphere>(position, color, radius, segments));
 }
 
 Shape *Scene::findShapeById(unsigned int id)
