@@ -15,34 +15,57 @@ void drawAddShapePopup(Gui &gui, Application &app)
 
     ImGui::Begin("Add Shape", &open);
 
-    ImGui::Text("Choose a shape to add");
-    ImGui::Separator();
-
-    if (ImGui::Button("Triangle"))
+    if (ImGui::BeginMenu("2D Shapes"))
     {
-        app.executeCommand(CommandId::AddTriangleMode);
+        if (ImGui::MenuItem("Triangle"))
+        {
+            app.executeCommand(CommandId::AddTriangleMode);
+        }
+
+        if (ImGui::MenuItem("Rectangle"))
+        {
+            app.executeCommand(CommandId::AddRectangleMode);
+        }
+
+        if (ImGui::MenuItem("Circle"))
+        {
+            app.executeCommand(CommandId::AddCircleMode);
+        }
+
+        ImGui::EndMenu();
     }
 
-    ImGui::SameLine();
-
-    if (ImGui::Button("Rectangle"))
+    if (ImGui::BeginMenu("3D Shapes"))
     {
-        app.executeCommand(CommandId::AddRectangleMode);
+        if (ImGui::MenuItem("Cube"))
+        {
+            app.executeCommand(CommandId::AddCubeMode);
+        }
+
+        if (ImGui::MenuItem("Sphere"))
+        {
+            app.executeCommand(CommandId::AddSphereMode);
+        }
+
+        ImGui::EndMenu();
     }
 
-    if (ImGui::Button("Circle"))
+    if (ImGui::BeginMenu("Lights"))
     {
-        app.executeCommand(CommandId::AddCircleMode);
+        if (ImGui::MenuItem("Cube"))
+        {
+            app.executeCommand(CommandId::AddCubeMode);
+        }
+
+        if (ImGui::MenuItem("Sphere"))
+        {
+            app.executeCommand(CommandId::AddSphereMode);
+        }
+
+        ImGui::EndMenu();
     }
 
-    ImGui::SameLine();
-
-    if (ImGui::Button("Cube"))
-    {
-        app.executeCommand(CommandId::AddCubeMode);
-    }
-
-    if (ImGui::Button("Sphere"))
+    if (ImGui::MenuItem("Empty Axe"))
     {
         app.executeCommand(CommandId::AddSphereMode);
     }

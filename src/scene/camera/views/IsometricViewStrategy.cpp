@@ -6,7 +6,7 @@
 
 void IsometricViewStrategy::apply(Camera &camera) const
 {
-    camera.setView(glm::vec3(8.0f, -8.0f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    camera.setView(glm::vec3(5.0f, -8.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
 const char *IsometricViewStrategy::name() const

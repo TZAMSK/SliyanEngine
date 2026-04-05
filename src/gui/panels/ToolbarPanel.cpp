@@ -25,25 +25,36 @@ void drawToolbarPanel(Application &app)
     ImGui::SameLine();
     if (ImGui::Button("Iso"))
     {
+        app.getScene().getCamera().setPlacementMode(Projection::Perspective);
         app.executeCommand(CommandId::CameraIsometric);
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Top XY"))
     {
+        app.getScene().getCamera().setPlacementMode(Projection::Orthographic);
         app.executeCommand(CommandId::CameraTop);
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Front XZ"))
     {
+        app.getScene().getCamera().setPlacementMode(Projection::Perspective);
         app.executeCommand(CommandId::CameraFront);
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Side YZ"))
     {
+        app.getScene().getCamera().setPlacementMode(Projection::Perspective);
         app.executeCommand(CommandId::CameraSide);
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Orthographic"))
+    {
+        app.getScene().getCamera().setPlacementMode(Projection::Orthographic);
+        app.executeCommand(CommandId::CameraOrthographic);
     }
 
     ImGui::SameLine();

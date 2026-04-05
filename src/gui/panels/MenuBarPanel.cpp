@@ -32,19 +32,28 @@ void drawMenuBarPanel(Gui &gui, Application &app)
         {
             if (ImGui::MenuItem("Isometric"))
             {
+                app.getScene().getCamera().setPlacementMode(Projection::Perspective);
                 app.executeCommand(CommandId::CameraIsometric);
             }
             if (ImGui::MenuItem("Top (XY)"))
             {
+                app.getScene().getCamera().setPlacementMode(Projection::Orthographic);
                 app.executeCommand(CommandId::CameraTop);
             }
             if (ImGui::MenuItem("Front (XZ)"))
             {
+                app.getScene().getCamera().setPlacementMode(Projection::Perspective);
                 app.executeCommand(CommandId::CameraFront);
             }
             if (ImGui::MenuItem("Side (YZ)"))
             {
+                app.getScene().getCamera().setPlacementMode(Projection::Perspective);
                 app.executeCommand(CommandId::CameraSide);
+            }
+            if (ImGui::MenuItem("Orthographic"))
+            {
+                app.getScene().getCamera().setPlacementMode(Projection::Orthographic);
+                app.executeCommand(CommandId::CameraOrthographic);
             }
             ImGui::EndMenu();
         }

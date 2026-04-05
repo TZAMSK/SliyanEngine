@@ -73,6 +73,7 @@ add_executable(sliyan_engine
     src/scene/camera/views/IsometricViewStrategy.cpp
     src/scene/camera/views/SideViewStrategy.cpp
     src/scene/camera/views/TopViewStrategy.cpp
+    src/scene/camera/views/OrthographicViewStrategy.cpp
 
     src/scene/commands/AddTriangleModeCommand.cpp
     src/scene/commands/AddRectangleModeCommand.cpp

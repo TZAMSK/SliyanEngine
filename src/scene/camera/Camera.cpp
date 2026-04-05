@@ -33,9 +33,33 @@ const glm::vec3 &Camera::getUp() const
     return up;
 }
 
+const Projection &Camera::getPlacementMode() const
+{
+    return projection;
+}
+
+void Camera::setPlacementMode(Projection new_projection)
+{
+    projection = new_projection;
+}
+
 const glm::mat4 Camera::getProjection(ImVec2 viewportSize) const
 {
-    return glm::perspective(glm::radians(fovDegrees), viewportSize.x / viewportSize.y, 0.1f, 200.0f);
+    const float aspect = viewportSize.x / viewportSize.y;
+
+    if (projection == Projection::Perspective)
+    {
+        return glm::perspective(glm::radians(fovDegrees), aspect, 0.1f, 200.0f);
+    }
+    else if (projection == Projection::Orthographic)
+    {
+        return glm::ortho(-aspect * orthoScale, aspect * orthoScale, -orthoScale, orthoScale, 0.0f, 300.0f);
+    }
+    else
+    {
+
+        return glm::mat4(1.0f);
+    }
 }
 
 const glm::mat4 Camera::getLookAt() const
@@ -46,6 +70,11 @@ const glm::mat4 Camera::getLookAt() const
 const float Camera::getFovDegrees() const
 {
     return fovDegrees;
+}
+
+void Camera::setOrthoScale(float new_orthoScale)
+{
+    orthoScale = new_orthoScale;
 }
 
 void Camera::setPosition(glm::vec3 new_position)
@@ -125,5 +154,10 @@ void Camera::zoomCamera(double scrollYOffset)
     */
 
     const glm::vec3 dir = glm::normalize(target - position);
+
+    if (projection == Projection::Orthographic)
+    {
+        setOrthoScale(orthoScale - static_cast<float>(scrollYOffset));
+    }
     setPosition(position + dir * static_cast<float>(scrollYOffset));
 }

@@ -4,9 +4,12 @@
 #include "scene/camera/views/IsometricViewStrategy.hpp"
 #include "scene/camera/views/SideViewStrategy.hpp"
 #include "scene/camera/views/TopViewStrategy.hpp"
+#include "scene/camera/views/OrthographicViewStrategy.hpp"
+
 #include "render/gizmo/TranslationGizmoStrategy.hpp"
 #include "render/gizmo/RotationGizmoStrategy.hpp"
 #include "render/gizmo/ScaleGizmoStratgy.hpp"
+
 #include "scene/commands/AddTriangleModeCommand.hpp"
 #include "scene/commands/AddRectangleModeCommand.hpp"
 #include "scene/commands/AddCircleModeCommand.hpp"
@@ -142,6 +145,9 @@ void Application::buildCameraCommands()
                      }));
     commands.emplace(CommandId::CameraSide, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
                          return std::make_unique<SideViewStrategy>();
+                     }));
+    commands.emplace(CommandId::CameraOrthographic, std::make_unique<SetCameraViewCommand>(scene.getCamera(), [] {
+                         return std::make_unique<OrthographicViewStrategy>();
                      }));
 }
 

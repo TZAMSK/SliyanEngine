@@ -45,7 +45,7 @@ void GizmoRenderer::draw(Application &app, Gizmo &gizmo) const
 
     ImGuizmo::SetDrawlist();
     ImGuizmo::SetRect(gizmoPos.x, gizmoPos.y, gizmoSize.x, gizmoSize.y);
-    ImGuizmo::SetOrthographic(false);
+    ImGuizmo::SetOrthographic(true);
 
     if (!app.getSelectionManager().hasSelection())
     {

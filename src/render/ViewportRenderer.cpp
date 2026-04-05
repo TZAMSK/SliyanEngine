@@ -209,9 +209,7 @@ void ViewportRenderer::render(Application &app)
     const glm::mat4 view =
         glm::lookAt(scene.getCamera().getPosition(), scene.getCamera().getTarget(), scene.getCamera().getUp());
 
-    const glm::mat4 proj =
-        glm::perspective(glm::radians(scene.getCamera().getFovDegrees()),
-                         static_cast<float>(framebufferWidth) / static_cast<float>(framebufferHeight), 0.1f, 200.0f);
+    const glm::mat4 proj = app.getScene().getCamera().getProjection(ImVec2(framebufferWidth, framebufferHeight));
 
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 

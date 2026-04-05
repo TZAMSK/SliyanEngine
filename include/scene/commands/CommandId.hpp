@@ -16,6 +16,7 @@ enum class CommandId
     CameraTop,
     CameraFront,
     CameraSide,
+    CameraOrthographic,
 
     // Gizmo
     GizmoTranslation,
