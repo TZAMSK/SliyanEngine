@@ -5,12 +5,16 @@
 #include <glm/vec4.hpp>
 #include <glm/glm.hpp>
 
+#include <glad/glad.h>
+
 class Shape
 {
   public:
     Shape(const glm::vec3 &position, const glm::vec4 &color);
     virtual ~Shape() = default;
-    virtual ShapeType getType() const = 0;
+
+    // Getter
+    const unsigned int &getId() const;
 
     glm::vec3 &getPosition();
     const glm::vec3 &getPosition() const;
@@ -19,29 +23,39 @@ class Shape
     glm::vec3 &getScale();
     const glm::vec3 &getScale() const;
 
-    void setPosition(const glm::vec3 &pos);
-    void setRotation(const glm::vec3 &rot);
-    void setScale(const glm::vec3 &s);
-
-    const glm::vec4 &getColor() const;
-    void setColor(const glm::vec4 &newColor);
-
     glm::mat4 getTransform() const;
 
-    virtual const float *getVertexData() const = 0;
-    virtual size_t getFloatCount() const = 0;
+    virtual ShapeType getType() const = 0;
 
-    size_t getVertexCount() const
-    {
-        return getFloatCount() / 3;
-    }
+    const glm::vec4 &getColor() const;
 
-    unsigned int id;
+    const float *getVertexData() const;
+    size_t getFloatCount() const;
+    size_t getVertexCount() const;
+
+    // Setter
+    void setPosition(const glm::vec3 &position);
+    void setRotation(const glm::vec3 &rotation);
+    void setScale(const glm::vec3 &scale);
+
+    void setColor(const glm::vec4 &color);
+
+    // Render
+    virtual void rebuildMesh() = 0;
+    void uploadToGpu();
+    void destroyGpuResources();
+
+    GLuint getVao() const;
 
   protected:
-    glm::vec4 color;
-    glm::vec3 translation = {0.0f, 0.0f, 0.0f};
-    glm::vec3 rotation = {0.0f, 0.0f, 0.0f};
-    glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+    unsigned int m_Id;
+    glm::vec4 m_Color;
+    glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Rotation = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Scale = {1.0f, 1.0f, 1.0f};
+
+    std::vector<float> m_Verts;
+
+    GLuint m_Vao = 0;
+    GLuint m_Vbo = 0;
 };
-;

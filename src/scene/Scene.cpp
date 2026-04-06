@@ -1,10 +1,10 @@
 #include "scene/Scene.hpp"
 
-#include "scene/shapes/Triangle.hpp"
-#include "scene/shapes/Rectangle.hpp"
-#include "scene/shapes/Circle.hpp"
-#include "scene/shapes/Cube.hpp"
-#include "scene/shapes/Sphere.hpp"
+#include "scene/shapes/2d/Triangle.hpp"
+#include "scene/shapes/2d/Rectangle.hpp"
+#include "scene/shapes/2d/Circle.hpp"
+#include "scene/shapes/3d/Cube.hpp"
+#include "scene/shapes/3d/Sphere.hpp"
 
 Camera &Scene::getCamera()
 {
@@ -60,7 +60,7 @@ Shape *Scene::findShapeById(unsigned int id)
 {
     for (auto &s : shapes)
     {
-        if (s->id == id)
+        if (s->getId() == id)
         {
             return s.get();
         }
@@ -72,7 +72,7 @@ const Shape *Scene::findShapeById(unsigned int id) const
 {
     for (const auto &s : shapes)
     {
-        if (s->id == id)
+        if (s->getId() == id)
         {
             return s.get();
         }

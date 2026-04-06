@@ -88,13 +88,14 @@ add_executable(sliyan_engine
     src/scene/selection/SelectionManager.cpp
 
     src/scene/shapes/Shape.cpp
-    src/scene/shapes/Triangle.cpp
-    src/scene/shapes/Rectangle.cpp
-    src/scene/shapes/Circle.cpp
-    src/scene/shapes/Cube.cpp
-    src/scene/shapes/Sphere.cpp   
-    src/scene/shapes/Shape2D.cpp
-    src/scene/shapes/Shape3D.cpp
+    src/scene/shapes/Round.cpp
+    src/scene/shapes/2d/Triangle.cpp
+    src/scene/shapes/2d/Rectangle.cpp
+    src/scene/shapes/2d/Circle.cpp
+    src/scene/shapes/3d/Cube.cpp
+    src/scene/shapes/3d/Sphere.cpp   
+    src/scene/shapes/2d/Shape2D.cpp
+    src/scene/shapes/3d/Shape3D.cpp
 
     src/util/readFile.cpp
 
