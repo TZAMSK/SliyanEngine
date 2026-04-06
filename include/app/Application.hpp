@@ -52,6 +52,7 @@ class Application
     static void framebufferSizeCallback(GLFWwindow *window, int width, int height);
     static GLFWmonitor *initializeMonitor(int monitorIndex);
 
+  private:
     GLFWwindow *window = nullptr;
 
     Scene scene;

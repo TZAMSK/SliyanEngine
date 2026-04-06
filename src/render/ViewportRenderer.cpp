@@ -2,11 +2,11 @@
 
 #include "scene/Scene.hpp"
 #include "scene/shapes/Shape.hpp"
-#include "scene/shapes/Triangle.hpp"
-#include "scene/shapes/Rectangle.hpp"
-#include "scene/shapes/Circle.hpp"
-#include "scene/shapes/Cube.hpp"
-#include "scene/shapes/Sphere.hpp"
+#include "scene/shapes/2d/Triangle.hpp"
+#include "scene/shapes/2d/Rectangle.hpp"
+#include "scene/shapes/2d/Circle.hpp"
+#include "scene/shapes/3d/Cube.hpp"
+#include "scene/shapes/3d/Sphere.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "app/Application.hpp"
 #include "util/readFile.hpp"
@@ -19,51 +19,30 @@
 namespace
 {
 
-GLuint makeVao(const float *verts, GLsizeiptr byteSize)
+GLuint vaoForShape(const Shape &shape)
 {
-    GLuint vao = 0, vbo = 0;
-
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, byteSize, verts, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    return vao;
-}
-
-GLuint staticVaoFor(ShapeType type, GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao)
-{
-    switch (type)
+    if (shape.getType() == ShapeType::Triangle)
     {
-    case ShapeType::Triangle:
-        return triangleVao;
-    case ShapeType::Rectangle:
-        return rectangleVao;
-    case ShapeType::Cube:
-        return cubeVao;
-    case ShapeType::Circle:
-        return 0;
-    case ShapeType::Sphere:
-        return 0;
+        const Triangle *triangle = dynamic_cast<const Triangle *>(&shape);
+        return triangle ? triangle->getVao() : 0;
     }
 
-    return 0;
-}
+    if (shape.getType() == ShapeType::Rectangle)
+    {
+        const Rectangle *rectangle = dynamic_cast<const Rectangle *>(&shape);
+        return rectangle ? rectangle->getVao() : 0;
+    }
 
-GLuint vaoForShape(const Shape &shape, GLuint triangleVao, GLuint rectangleVao, GLuint cubeVao)
-{
     if (shape.getType() == ShapeType::Circle)
     {
         const Circle *circle = dynamic_cast<const Circle *>(&shape);
         return circle ? circle->getVao() : 0;
+    }
+
+    if (shape.getType() == ShapeType::Cube)
+    {
+        const Cube *cube = dynamic_cast<const Cube *>(&shape);
+        return cube ? cube->getVao() : 0;
     }
 
     if (shape.getType() == ShapeType::Sphere)
@@ -72,7 +51,7 @@ GLuint vaoForShape(const Shape &shape, GLuint triangleVao, GLuint rectangleVao, 
         return sphere ? sphere->getVao() : 0;
     }
 
-    return staticVaoFor(shape.getType(), triangleVao, rectangleVao, cubeVao);
+    return 0;
 }
 
 } // namespace
@@ -95,17 +74,6 @@ bool ViewportRenderer::init()
 
     if (!gizmoRenderer.init())
         return false;
-
-    const Triangle triangle(glm::vec4(0.0f), glm::vec4(1.0f));
-    const Rectangle rectangle(glm::vec3(0.0f), glm::vec4(1.0f));
-    const Cube cube(glm::vec3(0.0f), glm::vec4(1.0f));
-
-    triangleVao = makeVao(triangle.getVertexData(), static_cast<GLsizeiptr>(triangle.getFloatCount() * sizeof(float)));
-
-    rectangleVao =
-        makeVao(rectangle.getVertexData(), static_cast<GLsizeiptr>(rectangle.getFloatCount() * sizeof(float)));
-
-    cubeVao = makeVao(cube.getVertexData(), static_cast<GLsizeiptr>(cube.getFloatCount() * sizeof(float)));
 
     return createFramebuffer(framebufferWidth, framebufferHeight);
 }
@@ -231,8 +199,8 @@ void ViewportRenderer::render(Application &app)
     for (const auto &shapePtr : scene.getShapes())
     {
         const Shape &shape = *shapePtr;
-        const bool selected = (shape.id == selection.selectedId());
-        const bool hovered = (shape.id == selection.hoveredId());
+        const bool selected = (shape.getId() == selection.selectedId());
+        const bool hovered = (shape.getId() == selection.hoveredId());
 
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(selected ? 0xFF : 0x00);
@@ -241,12 +209,12 @@ void ViewportRenderer::render(Application &app)
         const glm::vec4 &c = shape.getColor();
 
         glUniformMatrix4fv(glGetUniformLocation(shader.id(), "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniform1ui(glGetUniformLocation(shader.id(), "objectID"), shape.id);
+        glUniform1ui(glGetUniformLocation(shader.id(), "objectID"), shape.getId());
         glUniform1i(glGetUniformLocation(shader.id(), "isHovered"), hovered ? 1 : 0);
         glUniform1i(glGetUniformLocation(shader.id(), "isSelected"), selected ? 1 : 0);
         glUniform3f(glGetUniformLocation(shader.id(), "shapeColor"), c.r, c.g, c.b);
 
-        const GLuint vao = vaoForShape(shape, triangleVao, rectangleVao, cubeVao);
+        const GLuint vao = vaoForShape(shape);
         if (vao == 0)
             continue;
 
@@ -283,7 +251,7 @@ void ViewportRenderer::render(Application &app)
             glUniformMatrix4fv(glGetUniformLocation(outlineShader.id(), "model"), 1, GL_FALSE,
                                glm::value_ptr(outlineModel));
 
-            const GLuint vao = vaoForShape(*sel, triangleVao, rectangleVao, cubeVao);
+            const GLuint vao = vaoForShape(*sel);
             if (vao != 0)
             {
                 glBindVertexArray(vao);

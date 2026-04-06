@@ -152,12 +152,21 @@ void Camera::zoomCamera(double scrollYOffset)
         return;
     }
     */
-
-    const glm::vec3 dir = glm::normalize(target - position);
+    float orthoZoom = orthoScale - static_cast<float>(scrollYOffset);
+    const glm::vec3 normalize = glm::normalize(target - position);
+    glm::vec3 pos = position + normalize * static_cast<float>(scrollYOffset);
 
     if (projection == Projection::Orthographic)
     {
-        setOrthoScale(orthoScale - static_cast<float>(scrollYOffset));
+        if (orthoZoom <= 1)
+        {
+            orthoZoom = 1;
+        }
+        setOrthoScale(orthoZoom);
     }
-    setPosition(position + dir * static_cast<float>(scrollYOffset));
+
+    if (pos.z >= 1.0f)
+    {
+        setPosition(pos);
+    }
 }

@@ -1,8 +1,7 @@
 #include "render/gizmo/GizmoRenderer.hpp"
 #include "app/Application.hpp"
 #include "render/gizmo/Gizmo.hpp"
-#include "scene/shapes/Circle.hpp"
-#include "scene/shapes/Sphere.hpp"
+#include "scene/shapes/Round.hpp"
 
 #include "imgui.h"
 #include "ImGuizmo.h"
@@ -61,7 +60,7 @@ void GizmoRenderer::draw(Application &app, Gizmo &gizmo) const
 
         glm::mat4 transform = sel->getTransform();
         ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), gizmo.getOperation(),
-                             ImGuizmo::MODE::LOCAL, glm::value_ptr(transform));
+                             ImGuizmo::MODE::WORLD, glm::value_ptr(transform));
 
         const bool isUsing = ImGuizmo::IsUsing();
 
@@ -74,35 +73,17 @@ void GizmoRenderer::draw(Application &app, Gizmo &gizmo) const
             gizmo.setTranslation(translation);
             gizmo.setRotation(rotation);
 
-            if (sel->getType() == ShapeType::Circle)
+            if (Round *round = dynamic_cast<Round *>(sel))
             {
-                Circle *circle = dynamic_cast<Circle *>(sel);
-
                 if (!m_wasUsingLastFrame)
                 {
-                    m_initialCircleRadius = circle->getRadius();
+                    m_initialCircleRadius = round->getRadius();
                 }
 
                 float uniformScale = (scale.x + scale.y) / 2.0f;
                 float newRadius = m_initialCircleRadius * uniformScale;
 
-                circle->setRadius(newRadius);
-
-                gizmo.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
-            }
-            else if (sel->getType() == ShapeType::Sphere)
-            {
-                Sphere *sphere = dynamic_cast<Sphere *>(sel);
-
-                if (!m_wasUsingLastFrame)
-                {
-                    m_initialCircleRadius = sphere->getRadius();
-                }
-
-                float uniformScale = (scale.x + scale.y) / 2.0f;
-                float newRadius = m_initialCircleRadius * uniformScale;
-
-                sphere->setRadius(newRadius);
+                round->setRadius(newRadius);
 
                 gizmo.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
             }

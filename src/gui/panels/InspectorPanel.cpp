@@ -6,8 +6,7 @@
 #include "scene/Scene.hpp"
 #include "scene/shapes/Shape.hpp"
 #include "scene/selection/SelectionManager.hpp"
-#include "scene/shapes/Circle.hpp"
-#include "scene/shapes/Sphere.hpp"
+#include "scene/shapes/Round.hpp"
 
 #include "imgui.h"
 
@@ -66,6 +65,11 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
     if (selection.hasSelection())
     {
         Shape *sel = scene.findShapeById(selection.selectedId());
+
+        ImGui::Spacing();
+        ImGui::Text("Selected: %s  (id %u)", shapeTypeName(sel->getType()), sel->getId());
+        ImGui::Separator();
+
         if (sel)
         {
             // Color
@@ -87,10 +91,6 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
             // Transforfms
             if (ImGui::CollapsingHeader("Transforfms"))
             {
-                ImGui::Spacing();
-                ImGui::Text("Selected: %s  (id %u)", shapeTypeName(sel->getType()), sel->id);
-                ImGui::Separator();
-
                 // Pos
                 ImGui::Text("Position: ");
                 glm::vec3 pos = sel->getPosition();
@@ -157,45 +157,22 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
 
                 sel->setScale(scale);
 
-                // If Circle
-                if (sel->getType() == ShapeType::Circle)
+                if (Round *round = dynamic_cast<Round *>(sel))
                 {
-                    Circle *circle = dynamic_cast<Circle *>(sel);
-                    float radius = circle->getRadius();
+                    float radius = round->getRadius();
 
-                    ImGui::Text("Radius: ");
+                    ImGui::Text("Radius:");
                     if (ImGui::InputFloat("##radius", &radius, 1.0f, 1.0f, "%.3f"))
                     {
-                        circle->setRadius(radius);
+                        round->setRadius(radius);
                     }
 
-                    int segments = circle->getNbrSegments();
+                    int segments = round->getNbrSegments();
 
-                    ImGui::Text("Segments: ");
+                    ImGui::Text("Segments:");
                     if (ImGui::InputInt("##segments", &segments))
                     {
-                        circle->setNbrSegments(segments);
-                    }
-                }
-
-                // If Sphere
-                if (sel->getType() == ShapeType::Sphere)
-                {
-                    Sphere *sphere = dynamic_cast<Sphere *>(sel);
-                    float radius = sphere->getRadius();
-
-                    ImGui::Text("Radius: ");
-                    if (ImGui::InputFloat("##radius", &radius, 1.0f, 1.0f, "%.3f"))
-                    {
-                        sphere->setRadius(radius);
-                    }
-
-                    int segments = sphere->getNbrSegments();
-
-                    ImGui::Text("Segments: ");
-                    if (ImGui::InputInt("##segments", &segments))
-                    {
-                        sphere->setNbrSegments(segments);
+                        round->setNbrSegments(segments);
                     }
                 }
             }

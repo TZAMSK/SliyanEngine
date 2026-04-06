@@ -1,77 +1,137 @@
 #include "scene/shapes/Shape.hpp"
-#include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 static unsigned int s_nextId = 1;
 
-Shape::Shape(const glm::vec3 &position, const glm::vec4 &color) : color(color), translation(position), id(s_nextId++)
+Shape::Shape(const glm::vec3 &position, const glm::vec4 &color) : m_Color(color), m_Position(position), m_Id(s_nextId++)
 {
+}
+
+const unsigned int &Shape::getId() const
+{
+    return m_Id;
 }
 
 glm::vec3 &Shape::getPosition()
 {
-    return translation;
+    return m_Position;
 }
 
 const glm::vec3 &Shape::getPosition() const
 {
-    return translation;
+    return m_Position;
 }
 
 glm::vec3 &Shape::getRotation()
 {
-    return rotation;
+    return m_Rotation;
 }
 
 const glm::vec3 &Shape::getRotation() const
 {
-    return rotation;
+    return m_Rotation;
 }
 
 glm::vec3 &Shape::getScale()
 {
-    return scale;
+    return m_Scale;
 }
 
 const glm::vec3 &Shape::getScale() const
 {
-    return scale;
-}
-
-void Shape::setPosition(const glm::vec3 &pos)
-{
-    translation = pos;
-}
-
-void Shape::setRotation(const glm::vec3 &rot)
-{
-    rotation = rot;
-}
-
-void Shape::setScale(const glm::vec3 &s)
-{
-    scale = s;
+    return m_Scale;
 }
 
 glm::mat4 Shape::getTransform() const
 {
-    const glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), translation);
+    const glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), m_Position);
 
-    const glm::vec3 rotationRadians = glm::radians(rotation);
+    const glm::vec3 rotationRadians = glm::radians(m_Rotation);
     const glm::mat4 rotationMatrix = glm::toMat4(glm::quat(rotationRadians));
 
-    const glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
+    const glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), m_Scale);
 
     return translationMatrix * rotationMatrix * scaleMatrix;
 }
 
 const glm::vec4 &Shape::getColor() const
 {
-    return color;
+    return m_Color;
 }
 
-void Shape::setColor(const glm::vec4 &newColor)
+const float *Shape::getVertexData() const
 {
-    color = newColor;
+    return m_Verts.data();
+}
+
+size_t Shape::getFloatCount() const
+{
+    return m_Verts.size();
+}
+
+size_t Shape::getVertexCount() const
+{
+    return getFloatCount() / 3;
+}
+
+void Shape::setPosition(const glm::vec3 &position)
+{
+    m_Position = position;
+}
+
+void Shape::setRotation(const glm::vec3 &rotation)
+{
+    m_Rotation = rotation;
+}
+
+void Shape::setScale(const glm::vec3 &scale)
+{
+    m_Scale = scale;
+}
+
+void Shape::setColor(const glm::vec4 &color)
+{
+    m_Color = color;
+}
+
+void Shape::uploadToGpu()
+{
+    if (m_Vao == 0)
+        glGenVertexArrays(1, &m_Vao);
+
+    if (m_Vbo == 0)
+        glGenBuffers(1, &m_Vbo);
+
+    glBindVertexArray(m_Vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_Verts.size() * sizeof(float)), m_Verts.data(),
+                 GL_DYNAMIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void Shape::destroyGpuResources()
+{
+    if (m_Vbo)
+    {
+        glDeleteBuffers(1, &m_Vbo);
+        m_Vbo = 0;
+    }
+
+    if (m_Vao)
+    {
+        glDeleteVertexArrays(1, &m_Vao);
+        m_Vao = 0;
+    }
+}
+
+GLuint Shape::getVao() const
+{
+    return m_Vao;
 }
