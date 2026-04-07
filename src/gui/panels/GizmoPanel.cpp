@@ -8,7 +8,7 @@ void drawGizmoPanel(Gui &gui, Application &app)
 {
     ImVec2 viewportPos = app.getGui().getViewportPos();
     ImVec2 panelPos = ImVec2(viewportPos.x + 10.0f, viewportPos.y + 10.0f);
-    ImVec2 panelSize = ImVec2(110.0f, 115.0f);
+    ImVec2 panelSize = ImVec2(110.0f, 81.0f);
 
     gui.setGizmoPanelRect(panelPos, panelSize);
 

@@ -23,7 +23,7 @@ void drawMenuBarPanel(Gui &gui, Application &app)
         {
             if (ImGui::MenuItem("Add Shape"))
             {
-                app.executeCommand(CommandId::OpenAddShapeDialog);
+                gui.openAddShapeDialog();
             }
             ImGui::EndMenu();
         }

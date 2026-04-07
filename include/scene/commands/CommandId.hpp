@@ -3,13 +3,14 @@
 enum class CommandId
 {
     // Shape creation
-    OpenAddShapeDialog,
-    CloseAddShapeDialog,
     AddTriangleMode,
     AddRectangleMode,
     AddCircleMode,
     AddCubeMode,
     AddSphereMode,
+
+    // Shape Deletion
+    DeleteShape,
 
     // Camera
     CameraIsometric,

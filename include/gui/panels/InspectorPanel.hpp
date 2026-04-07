@@ -11,3 +11,4 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
 void drawColorTab(Shape *sel);
 void drawTransformTab(Shape *sel);
 void drawPhysicsTab();
+void drawRelationsTab(Shape *sel);

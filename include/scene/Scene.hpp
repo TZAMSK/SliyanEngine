@@ -28,10 +28,12 @@ class Scene
     void addSphereAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
                      const int &segments);
 
+    void removeShape(Shape *shape);
+
     Shape *findShapeById(unsigned int id);
     const Shape *findShapeById(unsigned int id) const;
 
   private:
-    Camera camera;
-    std::vector<std::unique_ptr<Shape>> shapes;
+    Camera m_Camera;
+    std::vector<std::unique_ptr<Shape>> m_Shapes;
 };

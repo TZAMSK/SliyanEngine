@@ -2,6 +2,7 @@
 
 #include "app/Application.hpp"
 #include "gui/panels/AddShapePopup.hpp"
+#include "gui/panels/ContextMenuPopup.hpp"
 #include "gui/panels/ConsolePanel.hpp"
 #include "gui/panels/InspectorPanel.hpp"
 #include "gui/panels/MenuBarPanel.hpp"
@@ -50,17 +51,11 @@ void Gui::draw(Application &app)
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
 
-    {
-        ImVec2 viewportPos = getViewportPos();
-        ImVec2 panelPos = ImVec2(viewportPos.x + 10.0f, viewportPos.y + 10.0f);
-        ImVec2 panelSize = ImVec2(110.0f, 115.0f);
-        setGizmoPanelRect(panelPos, panelSize);
-    }
-
     app.getRenderer().getGizmoRenderer().draw(app, app.getGizmo());
     drawGizmoPanel(*this, app);
 
     drawAddShapePopup(*this, app);
+    drawContextMenuPopup(*this, app.getSelectionManager(), app.getScene());
 
     if (m_ShowDemoWindow)
         ImGui::ShowDemoWindow(&m_ShowDemoWindow);
@@ -116,9 +111,19 @@ void Gui::openAddShapeDialog()
     m_ShowAddShapeDialog = true;
 }
 
-void Gui::closeAddShapeDialog()
+bool Gui::isContextMenuDialogOpen() const
 {
-    m_ShowAddShapeDialog = false;
+    return m_ShowContextMenuDialog;
+}
+
+void Gui::openContextMenuDialog()
+{
+    m_ShowContextMenuDialog = true;
+}
+
+void Gui::closeContextMenu()
+{
+    m_ShowContextMenuDialog = false;
 }
 
 // Placement mode
@@ -203,6 +208,11 @@ bool &Gui::addShapeDialogFlag()
     return m_ShowAddShapeDialog;
 }
 
+bool &Gui::contextMenuFlag()
+{
+    return m_ShowContextMenuDialog;
+}
+
 // Gizmo panel rect
 
 void Gui::setGizmoPanelRect(const ImVec2 &gizmoPanelPos, const ImVec2 &gizmoPanelSize)
@@ -217,4 +227,19 @@ bool Gui::isMouseInsideGizmoPanel() const
 
     return mouse.x >= m_GizmoPanelPos.x && mouse.y >= m_GizmoPanelPos.y &&
            mouse.x < m_GizmoPanelPos.x + m_GizmoPanelSize.x && mouse.y < m_GizmoPanelPos.y + m_GizmoPanelSize.y;
+}
+
+void Gui::setContextMenuPanelRect(const ImVec2 &contextMenuPanelPos, const ImVec2 &contextMenuPanelSize)
+{
+    m_ContextMenuPanelSize = contextMenuPanelPos;
+    m_ContextMenuPanelPos = contextMenuPanelSize;
+}
+
+bool Gui::isMouseInsideContextMenuPanel() const
+{
+    const ImVec2 mouse = ImGui::GetMousePos();
+
+    return mouse.x >= m_ContextMenuPanelPos.x && mouse.y >= m_ContextMenuPanelPos.y &&
+           mouse.x < m_ContextMenuPanelPos.x + m_ContextMenuPanelSize.x &&
+           mouse.y < m_ContextMenuPanelPos.y + m_ContextMenuPanelSize.y;
 }

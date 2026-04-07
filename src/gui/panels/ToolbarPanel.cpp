@@ -20,7 +20,7 @@ void drawToolbarPanel(Application &app)
 
     if (ImGui::Button("Add Shape"))
     {
-        app.executeCommand(CommandId::OpenAddShapeDialog);
+        app.getGui().openAddShapeDialog();
     }
 
     ImGui::SameLine();
