@@ -34,7 +34,9 @@ class Gui
     // Add shape
     bool isAddShapeDialogOpen() const;
     void openAddShapeDialog();
-    void closeAddShapeDialog();
+    bool isContextMenuDialogOpen() const;
+    void openContextMenuDialog();
+    void closeContextMenu();
 
     // Placement mode
     PlacementMode getPlacementMode() const;
@@ -57,10 +59,15 @@ class Gui
     // Conditional
     bool &demoWindowFlag();
     bool &addShapeDialogFlag();
+    bool &contextMenuFlag();
 
     // Gizmo panel rect
     void setGizmoPanelRect(const ImVec2 &pos, const ImVec2 &size);
     bool isMouseInsideGizmoPanel() const;
+
+    // Custom context panel rect
+    void setContextMenuPanelRect(const ImVec2 &pos, const ImVec2 &size);
+    bool isMouseInsideContextMenuPanel() const;
 
   private:
     ImVec2 m_ViewportPos = ImVec2(0.0f, 0.0f);
@@ -69,7 +76,11 @@ class Gui
     ImVec2 m_GizmoPanelPos = ImVec2(0.0f, 0.0f);
     ImVec2 m_GizmoPanelSize = ImVec2(0.0f, 0.0f);
 
+    ImVec2 m_ContextMenuPanelPos = ImVec2(0.0f, 0.0f);
+    ImVec2 m_ContextMenuPanelSize = ImVec2(0.0f, 0.0f);
+
     bool m_ShowAddShapeDialog = false;
+    bool m_ShowContextMenuDialog = false;
     bool m_ShowDemoWindow = false;
 
     PlacementMode m_PlacementMode = PlacementMode::None;

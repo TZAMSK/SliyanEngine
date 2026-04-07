@@ -41,7 +41,7 @@ class Application
   private:
     bool init();
     void buildCommands();
-    void buildAddShapeCommands();
+    void buildShapeCommands();
     void buildCameraCommands();
     void buildGizmoCommands();
 

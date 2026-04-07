@@ -99,7 +99,10 @@ static void drawShapeNode(Scene &scene, Shape *shape, SelectionManager &selectio
     }
     else
     {
-        open = ImGui::TreeNodeEx("##node", flags, "%s", shape->getName().c_str());
+        const bool isSelected = selectionManager.selectedId() == shape->getId();
+
+        open = ImGui::TreeNodeEx("##node", flags | (isSelected ? ImGuiTreeNodeFlags_Selected : 0), "%s",
+                                 shape->getName().c_str());
 
         if (ImGui::IsItemHovered())
         {
@@ -110,7 +113,6 @@ static void drawShapeNode(Scene &scene, Shape *shape, SelectionManager &selectio
             }
             else if (ImGui::IsMouseClicked(0))
             {
-                std::cout << "clicked" << std::endl;
                 selectionManager.setSelected(shape->getId());
             }
         }

@@ -4,11 +4,10 @@
 
 class Gui;
 
-class OpenAddShapeDialogCommand : public ICommand
+class DeleteShapeCommand : public ICommand
 {
   public:
-    explicit OpenAddShapeDialogCommand(Gui &gui);
-
+    explicit DeleteShapeCommand(Gui &gui);
     void execute() override;
 
   private:

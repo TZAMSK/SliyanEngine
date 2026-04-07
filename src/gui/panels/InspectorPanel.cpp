@@ -65,15 +65,15 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
         return;
     }
 
-    Shape *sel = scene.findShapeById(selection.selectedId());
-    if (!sel)
+    Shape *selelectedShape = scene.findShapeById(selection.selectedId());
+    if (!selelectedShape)
     {
         ImGui::End();
         return;
     }
 
     ImGui::Spacing();
-    ImGui::Text("Selected: %s  (id %u)", shapeTypeName(sel->getType()), sel->getId());
+    ImGui::Text("Selected: %s  (id %u)", shapeTypeName(selelectedShape->getType()), selelectedShape->getId());
     ImGui::Separator();
     ImGui::Spacing();
 
@@ -89,6 +89,8 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
         s_activeTab = 1;
     if (ImGui::Selectable("P", s_activeTab == 2, 0, ImVec2(40.0f, 40.0f)))
         s_activeTab = 2;
+    if (ImGui::Selectable("R", s_activeTab == 3, 0, ImVec2(40.0f, 40.0f)))
+        s_activeTab = 3;
 
     ImGui::EndChild();
 
@@ -100,13 +102,16 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_Header));
 
     ImGui::BeginChild("##InspectorContent", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AlwaysUseWindowPadding);
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x - 15.0f);
 
     if (s_activeTab == 0)
-        drawColorTab(sel);
+        drawColorTab(selelectedShape);
     else if (s_activeTab == 1)
-        drawTransformTab(sel);
+        drawTransformTab(selelectedShape);
     else if (s_activeTab == 2)
         drawPhysicsTab();
+    else if (s_activeTab == 3)
+        drawRelationsTab(selelectedShape);
 
     ImGui::EndChild();
 
@@ -116,114 +121,102 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
     ImGui::End();
 }
 
-void drawColorTab(Shape *sel)
+void drawColorTab(Shape *shape)
 {
     float col[4] = {
-        sel->getColor().r,
-        sel->getColor().g,
-        sel->getColor().b,
-        sel->getColor().a,
+        shape->getColor().r,
+        shape->getColor().g,
+        shape->getColor().b,
+        shape->getColor().a,
     };
 
     ImGui::Text("Color");
 
-    ImGui::SetNextItemWidth(-FLT_MIN);
     if (ImGui::ColorEdit4("", col))
-        sel->setColor(glm::vec4(col[0], col[1], col[2], col[3]));
+        shape->setColor(glm::vec4(col[0], col[1], col[2], col[3]));
 }
 
-void drawTransformTab(Shape *sel)
+void drawTransformTab(Shape *shape)
 {
     ImGui::Text("Position");
-    glm::vec3 pos = sel->getPosition();
+    glm::vec3 pos = shape->getPosition();
 
     ImGui::PushID("Position");
 
     ImGui::Text("X");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##X", &pos.x, 0.5f);
+    ImGui::DragFloat("##X", &pos.x, 0.02f);
 
     ImGui::Text("Y");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##Y", &pos.y, 0.5f);
+    ImGui::DragFloat("##Y", &pos.y, 0.02f);
 
     ImGui::Text("Z");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##Z", &pos.z, 0.5);
+    ImGui::DragFloat("##Z", &pos.z, 0.02f);
 
     ImGui::PopID();
 
-    sel->setPosition(pos);
+    shape->setPosition(pos);
 
     ImGui::Spacing();
 
     ImGui::Text("Rotation");
-    glm::vec3 rot = sel->getRotation();
+    glm::vec3 rot = shape->getRotation();
 
     ImGui::PushID("Rotation");
     ImGui::Text("X");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##X", &rot.x);
+    ImGui::DragFloat("##X", &rot.x, 0.2f);
 
     ImGui::Text("Y");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##Y", &rot.y);
+    ImGui::DragFloat("##Y", &rot.y, 0.2f);
 
     ImGui::Text("Z");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##Z", &rot.z);
+    ImGui::DragFloat("##Z", &rot.z, 0.2f);
 
     ImGui::PopID();
 
-    sel->setRotation(rot);
+    shape->setRotation(rot);
 
     ImGui::Spacing();
 
     ImGui::Text("Scale");
-    glm::vec3 scale = sel->getScale();
+    glm::vec3 scale = shape->getScale();
 
     ImGui::PushID("Scale");
 
     ImGui::Text("X");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##X", &scale.x);
+    ImGui::DragFloat("##X", &scale.x, 0.01f);
 
     ImGui::Text("Y");
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(-FLT_MIN);
-    ImGui::DragFloat("##Y", &scale.y);
+    ImGui::DragFloat("##Y", &scale.y, 0.01f);
 
     ImGui::Text("Z");
-    ImGui::SetNextItemWidth(-FLT_MIN);
     ImGui::SameLine();
-    ImGui::DragFloat("##Z", &scale.z);
+    ImGui::DragFloat("##Z", &scale.z, 0.01f);
 
     ImGui::PopID();
 
-    sel->setScale(scale);
+    shape->setScale(scale);
 
-    if (Round *round = dynamic_cast<Round *>(sel))
+    if (Round *round = dynamic_cast<Round *>(shape))
     {
         ImGui::Spacing();
 
         float radius = round->getRadius();
         ImGui::Text("Radius:");
 
-        ImGui::SetNextItemWidth(-FLT_MIN);
         if (ImGui::InputFloat("##radius", &radius, 1.0f, 1.0f, "%.3f"))
             round->setRadius(radius);
 
         int segments = round->getNbrSegments();
         ImGui::Text("Segments:");
 
-        ImGui::SetNextItemWidth(-FLT_MIN);
         if (ImGui::InputInt("##segments", &segments))
             round->setNbrSegments(segments);
     }
@@ -232,4 +225,48 @@ void drawTransformTab(Shape *sel)
 void drawPhysicsTab()
 {
     ImGui::TextDisabled("No physics properties");
+}
+
+void drawRelationsTab(Shape *shape)
+{
+    if (shape->getParent())
+    {
+        ImGui::Text("Parent: %s", shape->getParent()->getName().c_str());
+        bool following = shape->isFollowingParent();
+
+        if (ImGui::Checkbox("Follow parent", &following))
+            shape->setFollowingParent(following);
+    }
+    else
+        ImGui::TextDisabled("No parent");
+
+    if (!shape->getChidren().empty())
+    {
+        for (Shape *child : shape->getChidren())
+        {
+            ImGui::PushID(child);
+
+            ImGui::Text("%s", child->getName().c_str());
+            ImGui::SameLine();
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 0.0f, 0.0f, 0.3f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.65f, 0.0f, 0.0f, 0.8f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.3f, 0.0f, 0.0f, 1.0f));
+
+            const char *buttonLabel = "R";
+            float buttonWidth = ImGui::CalcTextSize(buttonLabel).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - buttonWidth);
+
+            if (ImGui::Button(buttonLabel))
+                shape->removeChild(child);
+
+            ImGui::PopStyleColor(3);
+
+            ImGui::PopID();
+        }
+    }
+    else
+        ImGui::TextDisabled("No children");
 }

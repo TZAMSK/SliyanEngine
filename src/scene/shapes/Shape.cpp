@@ -101,9 +101,15 @@ Shape *Shape::getParent() const
 {
     return m_Parent;
 }
+
 bool Shape::isRoot() const
 {
     return m_Parent == nullptr;
+}
+
+const bool &Shape::isFollowingParent() const
+{
+    return m_FollowingParent;
 }
 
 void Shape::setName(std::string name)
@@ -113,17 +119,44 @@ void Shape::setName(std::string name)
 
 void Shape::setPosition(const glm::vec3 &position)
 {
+    glm::vec3 delta = position - m_Position;
     m_Position = position;
+
+    for (Shape *child : m_Children)
+    {
+        if (child->isFollowingParent())
+        {
+            child->setPosition(child->getPosition() + delta);
+        }
+    }
 }
 
 void Shape::setRotation(const glm::vec3 &rotation)
 {
+    glm::vec3 delta = rotation - m_Rotation;
     m_Rotation = rotation;
+
+    for (Shape *child : m_Children)
+    {
+        if (child->isFollowingParent())
+        {
+            child->setRotation(child->getRotation() + delta);
+        }
+    }
 }
 
 void Shape::setScale(const glm::vec3 &scale)
 {
+    glm::vec3 delta = scale / m_Scale;
     m_Scale = scale;
+
+    for (Shape *child : m_Children)
+    {
+        if (child->isFollowingParent())
+        {
+            child->setScale(child->getScale() * delta);
+        }
+    }
 }
 
 void Shape::setColor(const glm::vec4 &color)
@@ -154,6 +187,11 @@ void Shape::removeChild(Shape *shape)
         (*it)->m_Parent = nullptr;
         m_Children.erase(it);
     }
+}
+
+void Shape::setFollowingParent(bool following)
+{
+    m_FollowingParent = following;
 }
 
 void Shape::uploadToGpu()

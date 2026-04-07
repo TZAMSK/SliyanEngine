@@ -24,9 +24,11 @@ Current build has:
   - Rectangle
   - Cube
   - Circle
+- Delete Shapes
+- Shape Scene hierarchy
 - Camera
   - Movement
-  - Isometric
+  - Isometric and Perspective
   - Top (XY) for future 2D implementations
   - Front (XZ) and Side (YZ)
 - Console

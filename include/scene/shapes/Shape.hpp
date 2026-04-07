@@ -45,6 +45,8 @@ class Shape
 
     bool isRoot() const;
 
+    const bool &isFollowingParent() const;
+
     // Setter
     void setName(const std::string name);
 
@@ -57,6 +59,8 @@ class Shape
     void addChild(Shape *shape);
     void removeChild(Shape *shape);
 
+    void setFollowingParent(bool following);
+
     // Render
     virtual void rebuildMesh() = 0;
     void uploadToGpu();
@@ -68,6 +72,7 @@ class Shape
     std::string m_Name = "Shape";
     std::vector<Shape *> m_Children;
     Shape *m_Parent = nullptr;
+    bool m_FollowingParent = false;
 
     unsigned int m_Id;
     glm::vec4 m_Color;

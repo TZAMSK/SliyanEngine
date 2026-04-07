@@ -71,7 +71,7 @@ void InputHandler::keyCallback(GLFWwindow *window, int key, int scancode, int ac
 
     if ((mods & GLFW_MOD_CONTROL) && key == GLFW_KEY_A)
     {
-        app->executeCommand(CommandId::OpenAddShapeDialog);
+        app->getGui().openAddShapeDialog();
         return;
     }
 }
@@ -106,10 +106,18 @@ void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int actio
         return;
     }
 
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        app->getGui().openContextMenuDialog();
+    }
+
     if (button != GLFW_MOUSE_BUTTON_LEFT || action != GLFW_PRESS)
         return;
 
     if (app->getGui().isMouseInsideGizmoPanel())
+        return;
+
+    if (app->getGui().isMouseInsideContextMenuPanel())
         return;
 
     if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())

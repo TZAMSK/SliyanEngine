@@ -15,8 +15,7 @@
 #include "scene/commands/AddCircleModeCommand.hpp"
 #include "scene/commands/AddCubeModeCommand.hpp"
 #include "scene/commands/AddSphereModeCommand.hpp"
-#include "scene/commands/DisableAddShapeModeCommand.hpp"
-#include "scene/commands/OpenAddShapeDialogCommand.hpp"
+#include "scene/commands/DeleteShapeCommand.hpp"
 #include "scene/commands/SetCameraViewCommand.hpp"
 #include "scene/commands/SetGizmoCommand.hpp"
 
@@ -117,20 +116,20 @@ bool Application::init()
 
 void Application::buildCommands()
 {
-    buildAddShapeCommands();
+    buildShapeCommands();
     buildCameraCommands();
     buildGizmoCommands();
 }
 
-void Application::buildAddShapeCommands()
+void Application::buildShapeCommands()
 {
-    commands.emplace(CommandId::OpenAddShapeDialog, std::make_unique<OpenAddShapeDialogCommand>(gui));
-    commands.emplace(CommandId::CloseAddShapeDialog, std::make_unique<DisableAddShapeModeCommand>(gui));
     commands.emplace(CommandId::AddTriangleMode, std::make_unique<AddTriangleModeCommand>(gui));
     commands.emplace(CommandId::AddRectangleMode, std::make_unique<AddRectangleModeCommand>(gui));
     commands.emplace(CommandId::AddCircleMode, std::make_unique<AddCircleModeCommand>(gui));
     commands.emplace(CommandId::AddCubeMode, std::make_unique<AddCubeModeCommand>(gui));
     commands.emplace(CommandId::AddSphereMode, std::make_unique<AddSphereModeCommand>(gui));
+
+    commands.emplace(CommandId::DeleteShape, std::make_unique<DeleteShapeCommand>(gui));
 }
 
 void Application::buildCameraCommands()
@@ -204,7 +203,7 @@ void Application::onViewportClicked(const glm::vec3 &worldPoint)
     }
 
     gui.appendLog(log.str());
-    executeCommand(CommandId::CloseAddShapeDialog);
+    gui.disarmPlacement();
 }
 
 void Application::requestClose()
