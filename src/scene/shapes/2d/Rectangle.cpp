@@ -1,6 +1,7 @@
 #include "scene/shapes/2d/Rectangle.hpp"
 
-Rectangle::Rectangle(const glm::vec3 &position, const glm::vec4 &color) : Shape2D(position, color)
+Rectangle::Rectangle(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
+    : Shape2D(name, position, color)
 {
     rebuildMesh();
     uploadToGpu();

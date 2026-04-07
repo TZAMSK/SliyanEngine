@@ -12,7 +12,6 @@ class InputHandler
 {
   public:
     void attach(GLFWwindow *window, Application *app);
-    const glm::vec3 &getWorldPoint() const;
 
   private:
     static glm::vec3 mouseLocalToWorldSpace(const Gui &gui, const Scene &scene, double mouseX, double mouseY);
@@ -22,6 +21,6 @@ class InputHandler
     static void mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
   private:
-    Camera camera;
-    bool middleMouseHeld = false;
+    Camera m_Camera;
+    bool m_MiddleMouseHeld = false;
 };

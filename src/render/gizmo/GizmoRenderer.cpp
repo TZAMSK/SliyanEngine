@@ -85,7 +85,7 @@ void GizmoRenderer::draw(Application &app, Gizmo &gizmo) const
 
                 round->setRadius(newRadius);
 
-                gizmo.setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+                gizmo.setScale(glm::vec3(1.0f));
             }
             else
             {

@@ -9,13 +9,12 @@
 void drawViewportPanel(Gui &gui, ViewportRenderer &renderer)
 {
     ImGuiViewport *mainViewport = ImGui::GetMainViewport();
-    const float topOffset = ImGui::GetFrameHeight() + GuiLayout::TOOLBAR_HEIGHT;
 
-    ImGui::SetNextWindowPos(
-        ImVec2(mainViewport->WorkPos.x + GuiLayout::LEFT_PANEL_WIDTH, mainViewport->WorkPos.y + topOffset));
+    ImGui::SetNextWindowPos(ImVec2(mainViewport->WorkPos.x + GuiLayout::LEFT_PANEL_WIDTH,
+                                   mainViewport->WorkPos.y + GuiLayout::TOOLBAR_HEIGHT));
     ImGui::SetNextWindowSize(
         ImVec2(mainViewport->WorkSize.x - GuiLayout::LEFT_PANEL_WIDTH - GuiLayout::RIGHT_PANEL_WIDTH,
-               mainViewport->WorkSize.y - topOffset - GuiLayout::CONSOLE_HEIGHT));
+               mainViewport->WorkSize.y - GuiLayout::TOOLBAR_HEIGHT - GuiLayout::CONSOLE_HEIGHT));
 
     ImGui::Begin("Viewport", nullptr,
                  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |

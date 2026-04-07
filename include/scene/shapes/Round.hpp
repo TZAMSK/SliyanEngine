@@ -7,9 +7,9 @@ class Round
     virtual ~Round() = default;
 
     virtual float getRadius() const;
-    virtual void setRadius(float radius);
-
     virtual int getNbrSegments() const;
+
+    virtual void setRadius(float radius);
     virtual void setNbrSegments(int segments);
 
   protected:

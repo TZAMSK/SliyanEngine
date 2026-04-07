@@ -179,27 +179,27 @@ void Application::onViewportClicked(const glm::vec3 &worldPoint)
 
     if (mode == PlacementMode::Triangle)
     {
-        scene.addTriangleAt(worldPoint, kDefaultColor);
+        scene.addTriangleAt("Triangle", worldPoint, kDefaultColor);
         log << "Added Triangle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
     else if (mode == PlacementMode::Rectangle)
     {
-        scene.addRectangleAt(worldPoint, kDefaultColor);
+        scene.addRectangleAt("Rectangle", worldPoint, kDefaultColor);
         log << "Added Rectangle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
     else if (mode == PlacementMode::Circle)
     {
-        scene.addCircleAt(worldPoint, kDefaultColor, 2.0f, 10);
+        scene.addCircleAt("Circle", worldPoint, kDefaultColor, 3.0f, 10);
         log << "Added Circle at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
     else if (mode == PlacementMode::Cube)
     {
-        scene.addCubeAt(worldPoint, kDefaultColor);
+        scene.addCubeAt("Cube", worldPoint, kDefaultColor);
         log << "Added Cube at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
     else if (mode == PlacementMode::Sphere)
     {
-        scene.addSphereAt(worldPoint, kDefaultColor, 2.0f, 10);
+        scene.addSphereAt("Sphere", worldPoint, kDefaultColor, 2.0f, 10);
         log << "Added Sphere at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
 

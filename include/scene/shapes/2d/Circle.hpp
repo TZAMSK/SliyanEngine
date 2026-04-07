@@ -6,7 +6,7 @@
 class Circle : public Shape2D, public Round
 {
   public:
-    Circle(const glm::vec3 &position, const glm::vec4 &color, float radius, int segments);
+    Circle(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, float radius, int segments);
     ~Circle() override;
 
     ShapeType getType() const override

@@ -31,29 +31,31 @@ int Scene::getShapeCount() const
     return static_cast<int>(shapes.size());
 }
 
-void Scene::addTriangleAt(const glm::vec3 &position, const glm::vec4 &color)
+void Scene::addTriangleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
 {
-    shapes.push_back(std::make_unique<Triangle>(position, color));
+    shapes.push_back(std::make_unique<Triangle>(name, position, color));
 }
 
-void Scene::addRectangleAt(const glm::vec3 &position, const glm::vec4 &color)
+void Scene::addRectangleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
 {
-    shapes.push_back(std::make_unique<Rectangle>(position, color));
+    shapes.push_back(std::make_unique<Rectangle>(name, position, color));
 }
 
-void Scene::addCircleAt(const glm::vec3 &position, const glm::vec4 &color, const float &radius, const int &segments)
+void Scene::addCircleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
+                        const int &segments)
 {
-    shapes.push_back(std::make_unique<Circle>(position, color, radius, segments));
+    shapes.push_back(std::make_unique<Circle>(name, position, color, radius, segments));
 }
 
-void Scene::addCubeAt(const glm::vec3 &position, const glm::vec4 &color)
+void Scene::addCubeAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
 {
-    shapes.push_back(std::make_unique<Cube>(position, color));
+    shapes.push_back(std::make_unique<Cube>(name, position, color));
 }
 
-void Scene::addSphereAt(const glm::vec3 &position, const glm::vec4 &color, const float &radius, const int &segments)
+void Scene::addSphereAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
+                        const int &segments)
 {
-    shapes.push_back(std::make_unique<Sphere>(position, color, radius, segments));
+    shapes.push_back(std::make_unique<Sphere>(name, position, color, radius, segments));
 }
 
 Shape *Scene::findShapeById(unsigned int id)

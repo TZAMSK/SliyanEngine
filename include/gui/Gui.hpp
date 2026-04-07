@@ -39,12 +39,6 @@ class Gui
     // Placement mode
     PlacementMode getPlacementMode() const;
 
-    bool isTrianglePlacementArmed() const;
-    bool isRectanglePlacementArmed() const;
-    bool isCirclePlacementArmed() const;
-
-    bool isCubePlacementArmed() const;
-    bool isSpherePlacementArmed() const;
     bool isAnyPlacementArmed() const;
 
     void armTrianglePlacement();
@@ -53,7 +47,6 @@ class Gui
     void armCubePlacement();
     void armSpherePlacement();
     void disarmPlacement();
-    void disarmTrianglePlacement();
 
     // Console
     void setLog(const std::string &value);
@@ -70,15 +63,15 @@ class Gui
     bool isMouseInsideGizmoPanel() const;
 
   private:
-    ImVec2 viewportPos = ImVec2(0.0f, 0.0f);
-    ImVec2 viewportSize = ImVec2(0.0f, 0.0f);
+    ImVec2 m_ViewportPos = ImVec2(0.0f, 0.0f);
+    ImVec2 m_ViewportSize = ImVec2(0.0f, 0.0f);
 
-    ImVec2 gizmoPanelPos = ImVec2(0.0f, 0.0f);
-    ImVec2 gizmoPanelSize = ImVec2(0.0f, 0.0f);
+    ImVec2 m_GizmoPanelPos = ImVec2(0.0f, 0.0f);
+    ImVec2 m_GizmoPanelSize = ImVec2(0.0f, 0.0f);
 
-    bool showAddShapeDialog = false;
-    bool showDemoWindow = false;
+    bool m_ShowAddShapeDialog = false;
+    bool m_ShowDemoWindow = false;
 
-    PlacementMode placementMode = PlacementMode::None;
-    std::string consoleLog;
+    PlacementMode m_PlacementMode = PlacementMode::None;
+    std::string m_ConsoleLog;
 };

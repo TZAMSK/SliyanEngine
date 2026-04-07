@@ -1,7 +1,7 @@
 #include "scene/shapes/2d/Circle.hpp"
 
-Circle::Circle(const glm::vec3 &position, const glm::vec4 &color, float radius, int segments)
-    : Shape2D(position, color), Round(radius, segments)
+Circle::Circle(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, float radius, int segments)
+    : Shape2D(name, position, color), Round(radius, segments)
 {
     rebuildMesh();
     uploadToGpu();

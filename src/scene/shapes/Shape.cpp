@@ -2,15 +2,28 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+#include <algorithm>
+
 static unsigned int s_nextId = 1;
 
-Shape::Shape(const glm::vec3 &position, const glm::vec4 &color) : m_Color(color), m_Position(position), m_Id(s_nextId++)
+Shape::Shape(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
+    : m_Name(name + " " + std::to_string(s_nextId)), m_Position(position), m_Color(color), m_Id(s_nextId++)
 {
 }
 
 const unsigned int &Shape::getId() const
 {
     return m_Id;
+}
+
+std::string &Shape::getName()
+{
+    return m_Name;
+}
+
+const std::string &Shape::getName() const
+{
+    return m_Name;
 }
 
 glm::vec3 &Shape::getPosition()
@@ -75,6 +88,29 @@ size_t Shape::getVertexCount() const
     return getFloatCount() / 3;
 }
 
+std::vector<Shape *> &Shape::getChidren()
+{
+    return m_Children;
+}
+const std::vector<Shape *> &Shape::getChildren() const
+{
+    return m_Children;
+}
+
+Shape *Shape::getParent() const
+{
+    return m_Parent;
+}
+bool Shape::isRoot() const
+{
+    return m_Parent == nullptr;
+}
+
+void Shape::setName(std::string name)
+{
+    m_Name = name;
+}
+
 void Shape::setPosition(const glm::vec3 &position)
 {
     m_Position = position;
@@ -93,6 +129,31 @@ void Shape::setScale(const glm::vec3 &scale)
 void Shape::setColor(const glm::vec4 &color)
 {
     m_Color = color;
+}
+
+void Shape::addChild(Shape *shape)
+{
+    if (!shape || shape->m_Parent == this)
+        return;
+
+    if (shape->m_Parent)
+        shape->m_Parent->removeChild(shape);
+
+    shape->m_Parent = this;
+    m_Children.push_back(shape);
+}
+
+void Shape::removeChild(Shape *shape)
+{
+    if (!shape)
+        return;
+
+    auto it = std::find(m_Children.begin(), m_Children.end(), shape);
+    if (it != m_Children.end())
+    {
+        (*it)->m_Parent = nullptr;
+        m_Children.erase(it);
+    }
 }
 
 void Shape::uploadToGpu()

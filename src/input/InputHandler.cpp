@@ -59,6 +59,7 @@ void InputHandler::keyCallback(GLFWwindow *window, int key, int scancode, int ac
     (void)scancode;
 
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+
     if (!app || action != GLFW_PRESS)
         return;
 
@@ -80,23 +81,27 @@ void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int actio
     (void)mods;
 
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+
     if (!app)
         return;
 
     double mouseX = 0.0;
     double mouseY = 0.0;
+
     glfwGetCursorPos(window, &mouseX, &mouseY);
+
+    const glm::vec3 worldPoint = mouseLocalToWorldSpace(app->getGui(), app->getScene(), mouseX, mouseY);
 
     if (button == GLFW_MOUSE_BUTTON_MIDDLE)
     {
         if (action == GLFW_PRESS)
         {
-            app->getInputHandler().middleMouseHeld = true;
+            app->getInputHandler().m_MiddleMouseHeld = true;
             app->getScene().getCamera().resetFirstMouse();
         }
         else if (action == GLFW_RELEASE)
         {
-            app->getInputHandler().middleMouseHeld = false;
+            app->getInputHandler().m_MiddleMouseHeld = false;
         }
         return;
     }
@@ -113,8 +118,6 @@ void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int actio
     if (!app->getGui().isMouseInsideViewport())
         return;
 
-    const glm::vec3 worldPoint = mouseLocalToWorldSpace(app->getGui(), app->getScene(), mouseX, mouseY);
-
     if (app->getGui().isAnyPlacementArmed())
     {
         app->onViewportClicked(worldPoint);
@@ -130,6 +133,7 @@ void InputHandler::mouseButtonCallback(GLFWwindow *window, int button, int actio
 void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
 {
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+
     if (!app)
         return;
 
@@ -138,7 +142,7 @@ void InputHandler::cursorPositionCallback(GLFWwindow *window, double xpos, doubl
         app->getScene().getCamera().resetFirstMouse();
     }
 
-    if (app->getInputHandler().middleMouseHeld)
+    if (app->getInputHandler().m_MiddleMouseHeld)
     {
         app->getScene().getCamera().moveCamera(xpos, ypos);
     }
@@ -151,6 +155,7 @@ void InputHandler::mouseScrollCallback(GLFWwindow *window, double xoffset, doubl
     (void)xoffset;
 
     auto *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+
     if (!app)
         return;
 

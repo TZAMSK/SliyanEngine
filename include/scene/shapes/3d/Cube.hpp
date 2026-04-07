@@ -5,7 +5,7 @@
 class Cube : public Shape3D
 {
   public:
-    Cube(const glm::vec3 &position, const glm::vec4 &color);
+    Cube(const std::string &name, const glm::vec3 &position, const glm::vec4 &color);
     ~Cube() override;
 
     ShapeType getType() const override

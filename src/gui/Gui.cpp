@@ -45,7 +45,7 @@ void Gui::draw(Application &app)
 {
     drawMenuBarPanel(*this, app);
     drawToolbarPanel(app);
-    drawScenePanel(app.getScene());
+    drawScenePanel(app.getScene(), app.getSelectionManager());
     drawInspectorPanel(*this, app.getScene(), app.getRenderer(), app.getSelectionManager());
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
@@ -62,8 +62,8 @@ void Gui::draw(Application &app)
 
     drawAddShapePopup(*this, app);
 
-    if (showDemoWindow)
-        ImGui::ShowDemoWindow(&showDemoWindow);
+    if (m_ShowDemoWindow)
+        ImGui::ShowDemoWindow(&m_ShowDemoWindow);
 }
 
 void Gui::endFrame()
@@ -84,167 +84,137 @@ void Gui::shutdown()
 bool Gui::isMouseInsideViewport() const
 {
     const ImVec2 mouse = ImGui::GetMousePos();
-    return mouse.x >= viewportPos.x && mouse.y >= viewportPos.y && mouse.x < viewportPos.x + viewportSize.x &&
-           mouse.y < viewportPos.y + viewportSize.y;
+    return mouse.x >= m_ViewportPos.x && mouse.y >= m_ViewportPos.y && mouse.x < m_ViewportPos.x + m_ViewportSize.x &&
+           mouse.y < m_ViewportPos.y + m_ViewportSize.y;
 }
 
 ImVec2 Gui::getViewportPos() const
 {
-    return viewportPos;
+    return m_ViewportPos;
 }
 
 ImVec2 Gui::getViewportSize() const
 {
-    return viewportSize;
+    return m_ViewportSize;
 }
 
-void Gui::setViewportRect(const ImVec2 &pos, const ImVec2 &size)
+void Gui::setViewportRect(const ImVec2 &viewportPos, const ImVec2 &viewportSize)
 {
-    viewportPos = pos;
-    viewportSize = size;
+    m_ViewportPos = viewportPos;
+    m_ViewportSize = viewportSize;
 }
 
 // Add shape
 
 bool Gui::isAddShapeDialogOpen() const
 {
-    return showAddShapeDialog;
+    return m_ShowAddShapeDialog;
 }
 
 void Gui::openAddShapeDialog()
 {
-    showAddShapeDialog = true;
+    m_ShowAddShapeDialog = true;
 }
 
 void Gui::closeAddShapeDialog()
 {
-    showAddShapeDialog = false;
+    m_ShowAddShapeDialog = false;
 }
 
 // Placement mode
 
 PlacementMode Gui::getPlacementMode() const
 {
-    return placementMode;
-}
-
-bool Gui::isTrianglePlacementArmed() const
-{
-    return placementMode == PlacementMode::Triangle;
-}
-
-bool Gui::isRectanglePlacementArmed() const
-{
-    return placementMode == PlacementMode::Rectangle;
-}
-
-bool Gui::isCirclePlacementArmed() const
-{
-    return placementMode == PlacementMode::Circle;
-}
-
-bool Gui::isCubePlacementArmed() const
-{
-    return placementMode == PlacementMode::Cube;
-}
-
-bool Gui::isSpherePlacementArmed() const
-{
-    return placementMode == PlacementMode::Sphere;
+    return m_PlacementMode;
 }
 
 bool Gui::isAnyPlacementArmed() const
 {
-    return placementMode != PlacementMode::None;
+    return m_PlacementMode != PlacementMode::None;
 }
 
 void Gui::armTrianglePlacement()
 {
-    placementMode = PlacementMode::Triangle;
-    showAddShapeDialog = false;
+    m_PlacementMode = PlacementMode::Triangle;
+    m_ShowAddShapeDialog = false;
 }
 
 void Gui::armRectanglePlacement()
 {
-    placementMode = PlacementMode::Rectangle;
-    showAddShapeDialog = false;
+    m_PlacementMode = PlacementMode::Rectangle;
+    m_ShowAddShapeDialog = false;
 }
 
 void Gui::armCirclePlacement()
 {
-    placementMode = PlacementMode::Circle;
-    showAddShapeDialog = false;
+    m_PlacementMode = PlacementMode::Circle;
+    m_ShowAddShapeDialog = false;
 }
 
 void Gui::armCubePlacement()
 {
-    placementMode = PlacementMode::Cube;
-    showAddShapeDialog = false;
+    m_PlacementMode = PlacementMode::Cube;
+    m_ShowAddShapeDialog = false;
 }
 
 void Gui::armSpherePlacement()
 {
-    placementMode = PlacementMode::Sphere;
-    showAddShapeDialog = false;
+    m_PlacementMode = PlacementMode::Sphere;
+    m_ShowAddShapeDialog = false;
 }
 
 void Gui::disarmPlacement()
 {
-    placementMode = PlacementMode::None;
-    showAddShapeDialog = false;
-}
-
-void Gui::disarmTrianglePlacement()
-{
-    disarmPlacement();
+    m_PlacementMode = PlacementMode::None;
+    m_ShowAddShapeDialog = false;
 }
 
 // Console
 
 void Gui::setLog(const std::string &value)
 {
-    consoleLog = value;
+    m_ConsoleLog = value;
 }
 
 void Gui::appendLog(const std::string &value)
 {
-    consoleLog += value;
+    m_ConsoleLog += value;
 }
 
 void Gui::clearConsole()
 {
-    consoleLog.clear();
+    m_ConsoleLog.clear();
 }
 
 std::string &Gui::logBuffer()
 {
-    return consoleLog;
+    return m_ConsoleLog;
 }
 
 // Conditional
 
 bool &Gui::demoWindowFlag()
 {
-    return showDemoWindow;
+    return m_ShowDemoWindow;
 }
 
 bool &Gui::addShapeDialogFlag()
 {
-    return showAddShapeDialog;
+    return m_ShowAddShapeDialog;
 }
 
 // Gizmo panel rect
 
-void Gui::setGizmoPanelRect(const ImVec2 &pos, const ImVec2 &size)
+void Gui::setGizmoPanelRect(const ImVec2 &gizmoPanelPos, const ImVec2 &gizmoPanelSize)
 {
-    gizmoPanelPos = pos;
-    gizmoPanelSize = size;
+    m_GizmoPanelPos = gizmoPanelPos;
+    m_GizmoPanelSize = gizmoPanelSize;
 }
 
 bool Gui::isMouseInsideGizmoPanel() const
 {
     const ImVec2 mouse = ImGui::GetMousePos();
 
-    return mouse.x >= gizmoPanelPos.x && mouse.y >= gizmoPanelPos.y && mouse.x < gizmoPanelPos.x + gizmoPanelSize.x &&
-           mouse.y < gizmoPanelPos.y + gizmoPanelSize.y;
+    return mouse.x >= m_GizmoPanelPos.x && mouse.y >= m_GizmoPanelPos.y &&
+           mouse.x < m_GizmoPanelPos.x + m_GizmoPanelSize.x && mouse.y < m_GizmoPanelPos.y + m_GizmoPanelSize.y;
 }

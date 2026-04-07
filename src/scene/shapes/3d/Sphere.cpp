@@ -1,7 +1,7 @@
 #include "scene/shapes/3d/Sphere.hpp"
 
-Sphere::Sphere(const glm::vec3 &position, const glm::vec4 &color, float radius, int segments)
-    : Shape3D(position, color), Round(radius, segments)
+Sphere::Sphere(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, float radius, int segments)
+    : Shape3D(name, position, color), Round(radius, segments)
 {
     rebuildMesh();
     uploadToGpu();

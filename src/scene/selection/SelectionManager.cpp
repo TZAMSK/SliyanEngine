@@ -64,3 +64,8 @@ bool SelectionManager::hasSelection() const
 {
     return selected_id != no_object;
 }
+
+void SelectionManager::setSelected(unsigned int id)
+{
+    selected_id = id;
+}

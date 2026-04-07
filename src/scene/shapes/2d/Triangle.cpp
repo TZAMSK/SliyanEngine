@@ -1,6 +1,7 @@
 #include "scene/shapes/2d/Triangle.hpp"
 
-Triangle::Triangle(const glm::vec3 &position, const glm::vec4 &color) : Shape2D(position, color)
+Triangle::Triangle(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
+    : Shape2D(name, position, color)
 {
     rebuildMesh();
     uploadToGpu();

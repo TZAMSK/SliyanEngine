@@ -10,12 +10,13 @@
 void drawToolbarPanel(Application &app)
 {
     ImGuiViewport *mainViewport = ImGui::GetMainViewport();
-    const float menuBarHeight = ImGui::GetFrameHeight();
 
-    ImGui::SetNextWindowPos(ImVec2(mainViewport->WorkPos.x, mainViewport->WorkPos.y + menuBarHeight));
+    ImGui::SetNextWindowPos(ImVec2(mainViewport->WorkPos.x, mainViewport->WorkPos.y));
     ImGui::SetNextWindowSize(ImVec2(mainViewport->WorkSize.x, GuiLayout::TOOLBAR_HEIGHT));
 
-    ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Toolbar", nullptr,
+                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 
     if (ImGui::Button("Add Shape"))
     {

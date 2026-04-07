@@ -18,6 +18,8 @@ class SelectionManager
     unsigned int selectedId() const;
     bool hasSelection() const;
 
+    void setSelected(unsigned int id);
+
   private:
     static constexpr unsigned int no_object = 0;
 

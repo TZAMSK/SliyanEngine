@@ -20,11 +20,13 @@ class Scene
 
     int getShapeCount() const;
 
-    void addTriangleAt(const glm::vec3 &position, const glm::vec4 &color);
-    void addRectangleAt(const glm::vec3 &position, const glm::vec4 &color);
-    void addCircleAt(const glm::vec3 &position, const glm::vec4 &color, const float &radius, const int &segments);
-    void addCubeAt(const glm::vec3 &position, const glm::vec4 &color);
-    void addSphereAt(const glm::vec3 &position, const glm::vec4 &color, const float &radius, const int &segments);
+    void addTriangleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color);
+    void addRectangleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color);
+    void addCircleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
+                     const int &segments);
+    void addCubeAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color);
+    void addSphereAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
+                     const int &segments);
 
     Shape *findShapeById(unsigned int id);
     const Shape *findShapeById(unsigned int id) const;

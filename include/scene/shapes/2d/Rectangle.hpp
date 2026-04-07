@@ -5,7 +5,7 @@
 class Rectangle : public Shape2D
 {
   public:
-    Rectangle(const glm::vec3 &position, const glm::vec4 &color);
+    Rectangle(const std::string &name, const glm::vec3 &position, const glm::vec4 &color);
     ~Rectangle() override;
 
     ShapeType getType() const override

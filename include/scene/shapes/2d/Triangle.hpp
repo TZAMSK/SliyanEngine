@@ -5,7 +5,7 @@
 class Triangle : public Shape2D
 {
   public:
-    Triangle(const glm::vec3 &position, const glm::vec4 &color);
+    Triangle(const std::string &name, const glm::vec3 &position, const glm::vec4 &color);
     ~Triangle() override;
 
     ShapeType getType() const override

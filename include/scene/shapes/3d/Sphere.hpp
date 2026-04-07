@@ -6,7 +6,7 @@
 class Sphere : public Shape3D, public Round
 {
   public:
-    Sphere(const glm::vec3 &position, const glm::vec4 &color, float radius, int segments);
+    Sphere(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, float radius, int segments);
     ~Sphere() override;
 
     ShapeType getType() const override
