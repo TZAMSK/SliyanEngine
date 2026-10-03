@@ -97,6 +97,9 @@ add_executable(sliyan_engine
     src/scene/shapes/2d/Shape2D.cpp
     src/scene/shapes/3d/Shape3D.cpp
 
+    src/physics/PhysicsWorld.cpp
+    src/scene/PhysicsSystem.cpp
+
     src/util/readFile.cpp
 
     src/glad.c

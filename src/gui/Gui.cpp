@@ -29,9 +29,22 @@ void Gui::init(GLFWwindow *window)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImGui::StyleColorsDark();
+    initCustomStyle();
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+void Gui::initCustomStyle()
+{
+    ImGuiStyle &style = ImGui::GetStyle();
+
+    style.Colors[ImGuiCol_Button] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+    style.Colors[ImGuiCol_Header] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.65f, 0.65f, 0.65, 1.0f);
+
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.34f, 0.34f, 0.34f, 1.0f);
+    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.34f, 0.34f, 0.34f, 1.0f);
 }
 
 void Gui::beginFrame()
@@ -47,7 +60,7 @@ void Gui::draw(Application &app)
     drawMenuBarPanel(*this, app);
     drawToolbarPanel(app);
     drawScenePanel(app.getScene(), app.getSelectionManager());
-    drawInspectorPanel(*this, app.getScene(), app.getRenderer(), app.getSelectionManager());
+    drawInspectorPanel(*this, app.getScene(), app.getRenderer(), app.getSelectionManager(), app.getPhysicsSystem());
     drawViewportPanel(*this, app.getRenderer());
     drawConsolePanel(*this);
 

@@ -70,6 +70,16 @@ const ViewportSettings &Application::getViewportSettings() const
     return viewportSettings;
 }
 
+PhysicsSystem &Application::getPhysicsSystem()
+{
+    return physicsSystem;
+}
+
+bool &Application::isSimulating()
+{
+    return m_Simulating;
+}
+
 void Application::framebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     (void)window;
@@ -246,9 +256,20 @@ GLFWmonitor *Application::initializeMonitor(int monitorIndex)
 
 void Application::loop()
 {
+
+    double lastTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
+        const double now = glfwGetTime();
+        const float deltaTime = static_cast<float>(now - lastTime);
+        lastTime = now;
+
         glfwPollEvents();
+
+        if (isSimulating())
+            physicsSystem.update(deltaTime);
+
         renderMainWindow();
         glfwSwapBuffers(window);
     }
