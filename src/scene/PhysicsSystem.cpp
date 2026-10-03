@@ -1,10 +1,17 @@
 #include "scene/shapes/Shape.hpp"
 #include "scene/PhysicsSystem.hpp"
+#include "physics/ColliderFactory.hpp"
 
 #include <algorithm>
 
 static constexpr float kFixedDt = 1.0f / 60.0f;
 static constexpr float kMaxFrameTime = 0.25f;
+
+void PhysicsSystem::rebuildCollider(Entry &e)
+{
+    e.body.parts = makeColliderParts(*e.shape);
+    e.body.computeMassProperties(e.mass);
+}
 
 void PhysicsSystem::add(Shape *s, float mass)
 {
@@ -13,23 +20,12 @@ void PhysicsSystem::add(Shape *s, float mass)
 
     auto e = std::make_unique<Entry>();
     e->shape = s;
+    e->mass = mass;
     e->body.position = s->getPosition();
     e->body.orientation = glm::quat(glm::radians(s->getRotation()));
-    e->body.invMass = mass > 0 ? 1.0f / mass : 0.0f;
+    rebuildCollider(*e);
 
     e->shape->setPhysicsAdded(true);
-
-    /*
-        switch (s->getType())
-        {
-        case ShapeType::Sphere:
-            e->body.collider = {ColliderType::Sphere, 0.5f * s->getScale().x};
-            break;
-        case ShapeType::Cube:
-            e->body.collider = {ColliderType::Box, 0, 0.5f * s->getScale()};
-            break;
-        }
-    */
     m_World.addBody(&e->body);
     m_Entries.push_back(std::move(e));
 }
@@ -52,6 +48,9 @@ void PhysicsSystem::syncFromShapes()
         e->body.position = e->shape->getPosition();
         e->body.orientation = glm::quat(glm::radians(e->shape->getRotation()));
         e->body.velocity = glm::vec3(0.0f);
+        e->body.angularVelocity = glm::vec3(0.0f);
+
+        rebuildCollider(*e);
     }
 
     m_Accumulator = 0.0f;
@@ -72,5 +71,6 @@ void PhysicsSystem::update(float frameTime)
         if (e->body.isStatic())
             continue;
         e->shape->setPosition(e->body.position);
+        e->shape->setRotation(glm::degrees(glm::eulerAngles(e->body.orientation)));
     }
 }

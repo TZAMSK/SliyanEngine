@@ -98,6 +98,7 @@ add_executable(sliyan_engine
     src/scene/shapes/3d/Shape3D.cpp
 
     src/physics/PhysicsWorld.cpp
+    src/physics/Collision.cpp
     src/scene/PhysicsSystem.cpp
 
     src/util/readFile.cpp

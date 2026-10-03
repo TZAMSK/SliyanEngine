@@ -18,8 +18,11 @@ class PhysicsSystem
     struct Entry
     {
         Shape *shape = nullptr;
+        float mass = 0.0f;
         RigidBody body;
     };
+
+    static void rebuildCollider(Entry &e);
 
     PhysicsWorld m_World;
     std::vector<std::unique_ptr<Entry>> m_Entries;
