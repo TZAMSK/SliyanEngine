@@ -7,6 +7,7 @@
 #include "scene/shapes/Shape.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "scene/shapes/Round.hpp"
+#include "scene/PhysicsSystem.hpp"
 
 #include "imgui.h"
 
@@ -28,7 +29,8 @@ static const char *shapeTypeName(ShapeType t)
     return "Shape";
 }
 
-void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, const SelectionManager &selection)
+void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, const SelectionManager &selection,
+                        PhysicsSystem &physicsSystem)
 {
     ImGuiViewport *mainViewport = ImGui::GetMainViewport();
 
@@ -109,7 +111,7 @@ void drawInspectorPanel(Gui &gui, Scene &scene, ViewportRenderer &renderer, cons
     else if (s_activeTab == 1)
         drawTransformTab(selelectedShape);
     else if (s_activeTab == 2)
-        drawPhysicsTab();
+        drawPhysicsTab(selelectedShape, physicsSystem);
     else if (s_activeTab == 3)
         drawRelationsTab(selelectedShape);
 
@@ -222,9 +224,21 @@ void drawTransformTab(Shape *shape)
     }
 }
 
-void drawPhysicsTab()
+void drawPhysicsTab(Shape *shape, PhysicsSystem &physicsSystem)
 {
-    ImGui::TextDisabled("No physics properties");
+    bool hasPhysics = shape->hasPhysicsAdded();
+
+    if (ImGui::Checkbox("Add to Physics World", &hasPhysics))
+    {
+        if (hasPhysics)
+        {
+            physicsSystem.add(shape, 1.0f);
+        }
+        else
+        {
+            physicsSystem.remove(shape);
+        }
+    }
 }
 
 void drawRelationsTab(Shape *shape)

@@ -112,6 +112,11 @@ const bool &Shape::isFollowingParent() const
     return m_FollowingParent;
 }
 
+const bool &Shape::hasPhysicsAdded() const
+{
+    return m_HasPhysicsAdded;
+}
+
 void Shape::setName(std::string name)
 {
     m_Name = name;
@@ -192,6 +197,11 @@ void Shape::removeChild(Shape *shape)
 void Shape::setFollowingParent(bool following)
 {
     m_FollowingParent = following;
+}
+
+void Shape::setPhysicsAdded(bool hasPhysics)
+{
+    m_HasPhysicsAdded = hasPhysics;
 }
 
 void Shape::uploadToGpu()

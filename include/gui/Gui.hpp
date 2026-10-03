@@ -70,6 +70,9 @@ class Gui
     bool isMouseInsideContextMenuPanel() const;
 
   private:
+    void initCustomStyle();
+
+  private:
     ImVec2 m_ViewportPos = ImVec2(0.0f, 0.0f);
     ImVec2 m_ViewportSize = ImVec2(0.0f, 0.0f);
 

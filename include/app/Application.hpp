@@ -9,6 +9,7 @@
 #include "scene/commands/ICommand.hpp"
 #include "scene/selection/SelectionManager.hpp"
 #include "render/gizmo/Gizmo.hpp"
+#include "scene/PhysicsSystem.hpp"
 #include "app/Settings.hpp"
 
 #include <GLFW/glfw3.h>
@@ -33,6 +34,9 @@ class Application
     Gizmo &getGizmo();
     ViewportSettings &getViewportSettings();
     const ViewportSettings &getViewportSettings() const;
+    PhysicsSystem &getPhysicsSystem();
+
+    bool &isSimulating();
 
     void executeCommand(CommandId id);
     void onViewportClicked(const glm::vec3 &worldPoint);
@@ -62,6 +66,9 @@ class Application
     InputHandler inputHandler;
     Camera camera;
     Gizmo gizmo;
+
+    bool m_Simulating = false;
+    PhysicsSystem physicsSystem;
 
     ViewportSettings viewportSettings;
 

@@ -70,5 +70,13 @@ void drawToolbarPanel(Application &app)
         app.getViewportSettings().viewMode = ViewMode::Solid;
     }
 
+    ImGui::SameLine();
+    if (ImGui::Button(app.isSimulating() ? "Stop" : "Play"))
+    {
+        app.isSimulating() = !app.isSimulating();
+        if (app.isSimulating())
+            app.getPhysicsSystem().syncFromShapes();
+    }
+
     ImGui::End();
 }

@@ -47,6 +47,8 @@ class Shape
 
     const bool &isFollowingParent() const;
 
+    const bool &hasPhysicsAdded() const;
+
     // Setter
     void setName(const std::string name);
 
@@ -61,6 +63,8 @@ class Shape
 
     void setFollowingParent(bool following);
 
+    void setPhysicsAdded(bool hasPhysics);
+
     // Render
     virtual void rebuildMesh() = 0;
     void uploadToGpu();
@@ -73,6 +77,7 @@ class Shape
     std::vector<Shape *> m_Children;
     Shape *m_Parent = nullptr;
     bool m_FollowingParent = false;
+    bool m_HasPhysicsAdded = false;
 
     unsigned int m_Id;
     glm::vec4 m_Color;
