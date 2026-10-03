@@ -226,16 +226,28 @@ void drawTransformTab(Shape *shape)
 
 void drawPhysicsTab(Shape *shape, PhysicsSystem &physicsSystem)
 {
+    static bool isStatic = false;
+    static float mass = 1.0f;
+
     bool hasPhysics = shape->hasPhysicsAdded();
+
+    if (!hasPhysics)
+    {
+        ImGui::Checkbox("Static (immovable)", &isStatic);
+        ImGui::BeginDisabled(isStatic);
+        ImGui::DragFloat("Mass", &mass, 0.05f, 0.01f, 1000.0f);
+        ImGui::EndDisabled();
+    }
 
     if (ImGui::Checkbox("Add to Physics World", &hasPhysics))
     {
         if (hasPhysics)
         {
-            physicsSystem.add(shape, 1.0f);
+            physicsSystem.add(shape, isStatic ? 0.0f : mass);
         }
         else
         {
+            shape->setPhysicsAdded(false);
             physicsSystem.remove(shape);
         }
     }
