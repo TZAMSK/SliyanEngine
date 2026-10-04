@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 
 #include <iostream>
+#include <vector>
 
 unsigned int ShaderProgram::compile(unsigned int shaderType, const char *source)
 {
@@ -15,9 +16,17 @@ unsigned int ShaderProgram::compile(unsigned int shaderType, const char *source)
 
     if (!success)
     {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Shader compilation failed:\n" << infoLog << std::endl;
+        int logLength = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+
+        std::vector<char> infoLog(logLength > 1 ? logLength : 1, '\0');
+        glGetShaderInfoLog(shader, static_cast<int>(infoLog.size()), nullptr, infoLog.data());
+
+        std::cerr << (shaderType == GL_VERTEX_SHADER ? "Vertex" : "Fragment") << " shader compilation failed:\n"
+                  << infoLog.data() << std::endl;
+
+        glDeleteShader(shader);
+        return 0;
     }
 
     return shader;
@@ -25,8 +34,19 @@ unsigned int ShaderProgram::compile(unsigned int shaderType, const char *source)
 
 bool ShaderProgram::create(const char *vertexSource, const char *fragmentSource)
 {
+    // Avoid leaking a previously created program
+    destroy();
+
     const unsigned int vertexShader = compile(GL_VERTEX_SHADER, vertexSource);
+    if (vertexShader == 0)
+        return false;
+
     const unsigned int fragmentShader = compile(GL_FRAGMENT_SHADER, fragmentSource);
+    if (fragmentShader == 0)
+    {
+        glDeleteShader(vertexShader);
+        return false;
+    }
 
     programId = glCreateProgram();
     glAttachShader(programId, vertexShader);
@@ -36,14 +56,20 @@ bool ShaderProgram::create(const char *vertexSource, const char *fragmentSource)
     int success = 0;
     glGetProgramiv(programId, GL_LINK_STATUS, &success);
 
+    glDetachShader(programId, vertexShader);
+    glDetachShader(programId, fragmentShader);
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
     if (!success)
     {
-        char infoLog[512];
-        glGetProgramInfoLog(programId, 512, nullptr, infoLog);
-        std::cerr << "Program linking failed:\n" << infoLog << std::endl;
+        int logLength = 0;
+        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLength);
+
+        std::vector<char> infoLog(logLength > 1 ? logLength : 1, '\0');
+        glGetProgramInfoLog(programId, static_cast<int>(infoLog.size()), nullptr, infoLog.data());
+
+        std::cerr << "Program linking failed:\n" << infoLog.data() << std::endl;
         destroy();
         return false;
     }

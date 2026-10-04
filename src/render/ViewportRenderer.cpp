@@ -19,6 +19,8 @@
 namespace
 {
 
+const glm::vec3 kLightTravelDir = glm::normalize(glm::vec3(-0.5f, -0.3f, -1.0f));
+
 GLuint vaoForShape(const Shape &shape)
 {
     if (shape.getType() == ShapeType::Triangle)
@@ -62,6 +64,8 @@ bool ViewportRenderer::init()
     std::string fragmentShaderSource = loadShaderAsString("src/core/shaders/fragmentShader.frag");
     std::string outlineVertexShaderSource = loadShaderAsString("src/core/shaders/outlineVertexShader.vert");
     std::string outlineFragmentShaderSource = loadShaderAsString("src/core/shaders/outlineFragmentShader.frag");
+    std::string shadowVs = loadShaderAsString("src/core/shaders/shadowVertexShader.vert");
+    std::string shadowFs = loadShaderAsString("src/core/shaders/shadowShader.frag");
 
     if (!shader.create(vertexShaderSource.c_str(), fragmentShaderSource.c_str()))
         return false;
@@ -73,6 +77,12 @@ bool ViewportRenderer::init()
         return false;
 
     if (!gizmoRenderer.init())
+        return false;
+
+    if (!shadowShader.create(shadowVs.c_str(), shadowFs.c_str()))
+        return false;
+
+    if (!createShadowMap())
         return false;
 
     return createFramebuffer(framebufferWidth, framebufferHeight);
@@ -162,11 +172,15 @@ void ViewportRenderer::render(Application &app)
     const SelectionManager selection = app.getSelectionManager();
     const ViewMode viewMode = app.getViewportSettings().viewMode;
 
+    renderShadowPass(scene);
+
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, framebufferWidth, framebufferHeight);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
+
+    glStencilMask(0xFF);
 
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -185,16 +199,38 @@ void ViewportRenderer::render(Application &app)
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
 
+    // Shadow
+    glUniformMatrix4fv(glGetUniformLocation(shader.id(), "lightSpaceMatrix"), 1, GL_FALSE,
+                       glm::value_ptr(lightSpaceMatrix));
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shadowDepthTex);
+    glUniform1i(glGetUniformLocation(shader.id(), "shadowMap"), 0);
+
+    // Direction FROM the scene TOWARD the light
+    const glm::vec3 toLight = -kLightTravelDir;
+    glUniform3f(glGetUniformLocation(shader.id(), "lightDir"), toLight.x, toLight.y, toLight.z);
+
     glStencilFunc(GL_ALWAYS, 1, 0xFF);
-    glStencilMask(0xFF);
+    glStencilMask(0x00);
 
     glUniform1ui(glGetUniformLocation(shader.id(), "objectID"), 0);
     glUniform1i(glGetUniformLocation(shader.id(), "isHovered"), 0);
     glUniform1i(glGetUniformLocation(shader.id(), "isSelected"), 0);
-    glUniform1i(glGetUniformLocation(shader.id(), "useVertexColor"), 1);
     glUniformMatrix4fv(glGetUniformLocation(shader.id(), "model"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-    gridRenderer.draw();
+
+    // Ground: lit, receives shadows
     glUniform1i(glGetUniformLocation(shader.id(), "useVertexColor"), 0);
+    glUniform3f(glGetUniformLocation(shader.id(), "shapeColor"), 0.28f, 0.28f, 0.30f);
+    glUniform1i(glGetUniformLocation(shader.id(), "useLighting"), 1);
+    gridRenderer.drawGround();
+
+    // Grid lines: unlit, drawn over the ground
+    glUniform1i(glGetUniformLocation(shader.id(), "useVertexColor"), 1);
+    glUniform1i(glGetUniformLocation(shader.id(), "useLighting"), 0);
+    gridRenderer.draw();
+
+    glUniform1i(glGetUniformLocation(shader.id(), "useVertexColor"), 0);
+    glUniform1i(glGetUniformLocation(shader.id(), "useLighting"), 1);
 
     for (const auto &shapePtr : scene.getShapes())
     {
@@ -264,7 +300,97 @@ void ViewportRenderer::render(Application &app)
         }
     }
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     glDisable(GL_STENCIL_TEST);
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+bool ViewportRenderer::createShadowMap()
+{
+    glGenFramebuffers(1, &shadowFbo);
+
+    glGenTextures(1, &shadowDepthTex);
+    glBindTexture(GL_TEXTURE_2D, shadowDepthTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, kShadowWidth, kShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+    float border[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowDepthTex, 0);
+
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    const bool ok = (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return ok;
+}
+
+void ViewportRenderer::destroyShadowMap()
+{
+    if (shadowDepthTex)
+    {
+        glDeleteTextures(1, &shadowDepthTex);
+        shadowDepthTex = 0;
+    }
+    if (shadowFbo)
+    {
+        glDeleteFramebuffers(1, &shadowFbo);
+        shadowFbo = 0;
+    }
+}
+
+void ViewportRenderer::renderShadowPass(const Scene &scene)
+{
+    const float extent = 25.0f;
+
+    const glm::vec3 lightPos = -kLightTravelDir * 30.0f;
+    const glm::vec3 lightTarget = glm::vec3(0.0f);
+
+    const glm::mat4 lightView = glm::lookAt(lightPos, lightTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::mat4 lightProj = glm::ortho(-extent, extent, -extent, extent, 0.1f, 100.0f);
+
+    lightSpaceMatrix = lightProj * lightView;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFbo);
+    glViewport(0, 0, kShadowWidth, kShadowHeight);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    shadowShader.use();
+    glUniformMatrix4fv(glGetUniformLocation(shadowShader.id(), "lightSpaceMatrix"), 1, GL_FALSE,
+                       glm::value_ptr(lightSpaceMatrix));
+
+    for (const auto &shapePtr : scene.getShapes())
+    {
+        const Shape &shape = *shapePtr;
+        const GLuint vao = vaoForShape(shape);
+        if (vao == 0)
+            continue;
+
+        glUniformMatrix4fv(glGetUniformLocation(shadowShader.id(), "model"), 1, GL_FALSE,
+                           glm::value_ptr(shape.getTransform()));
+
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(shape.getVertexCount()));
+    }
+
+    glCullFace(GL_BACK);
+    glDisable(GL_CULL_FACE);
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -275,6 +401,8 @@ void ViewportRenderer::shutdown()
     shader.destroy();
     outlineShader.destroy();
     gridRenderer.shutdown();
+    destroyShadowMap();
+    shadowShader.destroy();
 
     auto deleteVao = [](GLuint &vao) {
         if (vao)

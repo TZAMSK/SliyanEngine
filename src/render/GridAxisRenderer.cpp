@@ -63,6 +63,28 @@ bool GridAxisRenderer::init()
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+
+    const float g = halfSize * step;
+    const float z = -0.01f;
+    const float ground[] = {
+        -g, -g, z, 0.0f, 0.0f, 0.0f, g, -g, z, 0.0f, 0.0f, 0.0f, g,  g, z, 0.0f, 0.0f, 0.0f,
+        -g, -g, z, 0.0f, 0.0f, 0.0f, g, g,  z, 0.0f, 0.0f, 0.0f, -g, g, z, 0.0f, 0.0f, 0.0f,
+    };
+
+    glGenVertexArrays(1, &groundVao);
+    glGenBuffers(1, &groundVbo);
+
+    glBindVertexArray(groundVao);
+    glBindBuffer(GL_ARRAY_BUFFER, groundVbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(ground), ground, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
     return true;
 }
 
@@ -70,6 +92,13 @@ void GridAxisRenderer::draw() const
 {
     glBindVertexArray(vao);
     glDrawArrays(GL_LINES, 0, vertexCount);
+    glBindVertexArray(0);
+}
+
+void GridAxisRenderer::drawGround() const
+{
+    glBindVertexArray(groundVao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 }
 
@@ -85,5 +114,17 @@ void GridAxisRenderer::shutdown()
     {
         glDeleteVertexArrays(1, &vao);
         vao = 0;
+    }
+
+    if (groundVbo)
+    {
+        glDeleteBuffers(1, &groundVbo);
+        groundVbo = 0;
+    }
+
+    if (groundVao)
+    {
+        glDeleteVertexArrays(1, &groundVao);
+        groundVao = 0;
     }
 }
