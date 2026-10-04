@@ -3,6 +3,7 @@
 #include "core/ShaderProgram.hpp"
 #include "render/GridAxisRenderer.hpp"
 #include "render/gizmo/GizmoRenderer.hpp"
+#include "scene/Scene.hpp"
 
 #include <glad/glad.h>
 
@@ -48,6 +49,21 @@ class ViewportRenderer
 
     int framebufferWidth = 1280;
     int framebufferHeight = 720;
+
+    // Shadow
+    static constexpr int kShadowWidth = 4096;
+    static constexpr int kShadowHeight = 4096;
+
+    GLuint shadowFbo = 0;
+    GLuint shadowDepthTex = 0;
+
+    ShaderProgram shadowShader;
+
+    glm::mat4 lightSpaceMatrix{1.0f};
+
+    bool createShadowMap();
+    void destroyShadowMap();
+    void renderShadowPass(const Scene &scene);
 
     float clearColor[4] = {0.34f, 0.34f, 0.34f, 1.0f};
 };
