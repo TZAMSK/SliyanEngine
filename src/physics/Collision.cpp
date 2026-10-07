@@ -1,6 +1,9 @@
 #include "physics/Collision.hpp"
 
+#include <algorithm>
 #include <array>
+#include <cmath>
+#include <initializer_list>
 #include <limits>
 #include <utility>
 #include <vector>
@@ -11,148 +14,192 @@ using glm::vec3;
 
 struct Vertex
 {
-    vec3 p, a, b;
+    vec3 minkowskiDifferentPoint;
+    vec3 singlePointShapeA;
+    vec3 singlePointShapeB;
 };
 
-Vertex minkowski(const WorldCollider &A, const WorldCollider &B, const vec3 &dir)
+Vertex minkowski(const WorldCollider &colliderA, const WorldCollider &colliderB, const vec3 &searchDirection)
 {
-    Vertex v;
-    v.a = A.support(dir);
-    v.b = B.support(-dir);
-    v.p = v.a - v.b;
-    return v;
+    Vertex vertex;
+    vertex.singlePointShapeA = colliderA.support(searchDirection);
+    vertex.singlePointShapeB = colliderB.support(-searchDirection);
+    vertex.minkowskiDifferentPoint = vertex.singlePointShapeA - vertex.singlePointShapeB;
+    return vertex;
 }
 
-bool same(const vec3 &a, const vec3 &b)
+bool isAcute(const vec3 &a, const vec3 &b)
 {
     return glm::dot(a, b) > 0.0f;
 }
 
 struct Simplex
 {
-    std::array<Vertex, 4> v;
+    std::array<Vertex, 4> vertices;
     int size = 0;
 
-    void set(std::initializer_list<Vertex> l)
+    void set(std::initializer_list<Vertex> newVertices)
     {
         size = 0;
-        for (auto &x : l)
-            v[size++] = x;
+        for (const Vertex &vertex : newVertices)
+            vertices[size++] = vertex;
     }
-    void push(const Vertex &x)
+
+    void push(const Vertex &newVertex)
     {
         for (int i = std::min(size, 3); i > 0; --i)
-            v[i] = v[i - 1];
-        v[0] = x;
+            vertices[i] = vertices[i - 1];
+        vertices[0] = newVertex;
         size = std::min(size + 1, 4);
     }
 };
 
-bool lineCase(Simplex &s, vec3 &dir)
+bool lineCase(Simplex &simplex, vec3 &searchDirection)
 {
-    vec3 ab = s.v[1].p - s.v[0].p, ao = -s.v[0].p;
-    if (same(ab, ao))
+    const Vertex newestVertex = simplex.vertices[0];
+    const vec3 newest = newestVertex.minkowskiDifferentPoint;
+    const vec3 older = simplex.vertices[1].minkowskiDifferentPoint;
+
+    const vec3 edge = older - newest;
+    const vec3 toOrigin = -newest;
+
+    if (isAcute(edge, toOrigin))
     {
-        dir = glm::cross(glm::cross(ab, ao), ab);
-        if (glm::dot(dir, dir) < 1e-12f)
-            dir =
-                glm::abs(ab.x) < 0.9f * glm::length(ab) ? glm::cross(ab, vec3(1, 0, 0)) : glm::cross(ab, vec3(0, 1, 0));
+        // Search perpendicular to the edge, on the side facing the origin
+        searchDirection = glm::cross(glm::cross(edge, toOrigin), edge);
+
+        if (glm::dot(searchDirection, searchDirection) < 1e-12f)
+        {
+            // Origin lies on the edge's line, so any perpendicular direction works
+            searchDirection = glm::abs(edge.x) < 0.9f * glm::length(edge) ? glm::cross(edge, vec3(1, 0, 0))
+                                                                          : glm::cross(edge, vec3(0, 1, 0));
+        }
     }
     else
     {
-        s.set({s.v[0]});
-        dir = ao;
+        // Origin is behind the newest point, so keep only that point
+        simplex.set({newestVertex});
+        searchDirection = toOrigin;
     }
     return false;
 }
 
-bool triangleCase(Simplex &s, vec3 &dir)
+bool triangleCase(Simplex &simplex, vec3 &searchDirection)
 {
-    vec3 a = s.v[0].p, ab = s.v[1].p - a, ac = s.v[2].p - a, ao = -a;
-    vec3 abc = glm::cross(ab, ac);
+    const Vertex newestVertex = simplex.vertices[0];
+    const Vertex vertexB = simplex.vertices[1];
+    const Vertex vertexC = simplex.vertices[2];
 
-    if (same(glm::cross(abc, ac), ao))
+    const vec3 newest = newestVertex.minkowskiDifferentPoint;
+    const vec3 edgeToB = vertexB.minkowskiDifferentPoint - newest;
+    const vec3 edgeToC = vertexC.minkowskiDifferentPoint - newest;
+    const vec3 toOrigin = -newest;
+    const vec3 faceNormal = glm::cross(edgeToB, edgeToC);
+
+    // Is the origin outside the edge newest -> C?
+    if (isAcute(glm::cross(faceNormal, edgeToC), toOrigin))
     {
-        if (same(ac, ao))
+        if (isAcute(edgeToC, toOrigin))
         {
-            s.set({s.v[0], s.v[2]});
-            dir = glm::cross(glm::cross(ac, ao), ac);
+            simplex.set({newestVertex, vertexC});
+            searchDirection = glm::cross(glm::cross(edgeToC, toOrigin), edgeToC);
         }
         else
         {
-            s.set({s.v[0], s.v[1]});
-            return lineCase(s, dir);
+            simplex.set({newestVertex, vertexB});
+            return lineCase(simplex, searchDirection);
         }
     }
-    else if (same(glm::cross(ab, abc), ao))
+    // Is the origin outside the edge newest -> B?
+    else if (isAcute(glm::cross(edgeToB, faceNormal), toOrigin))
     {
-        s.set({s.v[0], s.v[1]});
-        return lineCase(s, dir);
+        simplex.set({newestVertex, vertexB});
+        return lineCase(simplex, searchDirection);
     }
-    else if (same(abc, ao))
-        dir = abc;
+    // Origin is above the triangle
+    else if (isAcute(faceNormal, toOrigin))
+    {
+        searchDirection = faceNormal;
+    }
+    // Origin is below the triangle: flip winding so the normal points toward it
     else
     {
-        s.set({s.v[0], s.v[2], s.v[1]});
-        dir = -abc;
+        simplex.set({newestVertex, vertexC, vertexB});
+        searchDirection = -faceNormal;
     }
     return false;
 }
 
-bool tetraCase(Simplex &s, vec3 &dir)
+bool tetrahedronCase(Simplex &simplex, vec3 &searchDirection)
 {
-    vec3 a = s.v[0].p, ab = s.v[1].p - a, ac = s.v[2].p - a, ad = s.v[3].p - a, ao = -a;
-    vec3 abc = glm::cross(ab, ac), acd = glm::cross(ac, ad), adb = glm::cross(ad, ab);
+    const Vertex newestVertex = simplex.vertices[0];
+    const Vertex vertexB = simplex.vertices[1];
+    const Vertex vertexC = simplex.vertices[2];
+    const Vertex vertexD = simplex.vertices[3];
 
-    if (same(abc, ao))
+    const vec3 newest = newestVertex.minkowskiDifferentPoint;
+    const vec3 edgeToB = vertexB.minkowskiDifferentPoint - newest;
+    const vec3 edgeToC = vertexC.minkowskiDifferentPoint - newest;
+    const vec3 edgeToD = vertexD.minkowskiDifferentPoint - newest;
+    const vec3 toOrigin = -newest;
+
+    const vec3 normalABC = glm::cross(edgeToB, edgeToC);
+    const vec3 normalACD = glm::cross(edgeToC, edgeToD);
+    const vec3 normalADB = glm::cross(edgeToD, edgeToB);
+
+    if (isAcute(normalABC, toOrigin))
     {
-        s.set({s.v[0], s.v[1], s.v[2]});
-        return triangleCase(s, dir);
+        simplex.set({newestVertex, vertexB, vertexC});
+        return triangleCase(simplex, searchDirection);
     }
-    if (same(acd, ao))
+    if (isAcute(normalACD, toOrigin))
     {
-        s.set({s.v[0], s.v[2], s.v[3]});
-        return triangleCase(s, dir);
+        simplex.set({newestVertex, vertexC, vertexD});
+        return triangleCase(simplex, searchDirection);
     }
-    if (same(adb, ao))
+    if (isAcute(normalADB, toOrigin))
     {
-        s.set({s.v[0], s.v[3], s.v[1]});
-        return triangleCase(s, dir);
+        simplex.set({newestVertex, vertexD, vertexB});
+        return triangleCase(simplex, searchDirection);
     }
+    // Origin is inside the tetrahedron: the shapes overlap
     return true;
 }
 
-bool nextSimplex(Simplex &s, vec3 &dir)
+bool nextSimplex(Simplex &simplex, vec3 &searchDirection)
 {
-    switch (s.size)
+    switch (simplex.size)
     {
     case 2:
-        return lineCase(s, dir);
+        return lineCase(simplex, searchDirection);
     case 3:
-        return triangleCase(s, dir);
+        return triangleCase(simplex, searchDirection);
     default:
-        return tetraCase(s, dir);
+        return tetrahedronCase(simplex, searchDirection);
     }
 }
 
-bool gjk(const WorldCollider &A, const WorldCollider &B, Simplex &s)
+bool gjk(const WorldCollider &colliderA, const WorldCollider &colliderB, Simplex &simplex)
 {
-    vec3 dir = B.position - A.position;
-    if (glm::dot(dir, dir) < 1e-12f)
-        dir = vec3(1, 0, 0);
+    vec3 searchDirection = colliderB.position - colliderA.position;
+    if (glm::dot(searchDirection, searchDirection) < 1e-12f)
+        searchDirection = vec3(1, 0, 0);
 
-    s.push(minkowski(A, B, dir));
-    dir = -s.v[0].p;
-    if (glm::dot(dir, dir) < 1e-12f)
-        dir = vec3(0, 1, 0);
+    simplex.push(minkowski(colliderA, colliderB, searchDirection));
+    searchDirection = -simplex.vertices[0].minkowskiDifferentPoint;
+    if (glm::dot(searchDirection, searchDirection) < 1e-12f)
+        searchDirection = vec3(0, 1, 0);
 
-    for (int i = 0; i < 64; ++i)
+    for (int iteration = 0; iteration < 64; ++iteration)
     {
-        Vertex p = minkowski(A, B, dir);
-        if (glm::dot(p.p, dir) <= 0.0f)
+        const Vertex supportVertex = minkowski(colliderA, colliderB, searchDirection);
+
+        // The new point did not pass the origin, so the origin cannot be inside
+        if (glm::dot(supportVertex.minkowskiDifferentPoint, searchDirection) <= 0.0f)
             return false;
-        s.push(p);
-        if (nextSimplex(s, dir))
+
+        simplex.push(supportVertex);
+        if (nextSimplex(simplex, searchDirection))
             return true;
     }
     return false;
@@ -160,104 +207,139 @@ bool gjk(const WorldCollider &A, const WorldCollider &B, Simplex &s)
 
 struct Face
 {
-    int i[3];
-    vec3 n;
-    float d;
+    int vertexIndices[3];
+    vec3 normal;
+    float distance; // distance from the origin to the face plane
 };
 
-Face makeFace(const std::vector<Vertex> &vs, int a, int b, int c)
+Face makeFace(const std::vector<Vertex> &vertices, int indexA, int indexB, int indexC)
 {
-    Face f{{a, b, c}, vec3(0), std::numeric_limits<float>::max()};
-    vec3 n = glm::cross(vs[b].p - vs[a].p, vs[c].p - vs[a].p);
-    float len = glm::length(n);
-    if (len < 1e-10f)
-        return f;
-    f.n = n / len;
-    f.d = glm::dot(f.n, vs[a].p);
-    if (f.d < 0.0f)
+    Face face{{indexA, indexB, indexC}, vec3(0), std::numeric_limits<float>::max()};
+
+    const vec3 &pointA = vertices[indexA].minkowskiDifferentPoint;
+    const vec3 &pointB = vertices[indexB].minkowskiDifferentPoint;
+    const vec3 &pointC = vertices[indexC].minkowskiDifferentPoint;
+
+    const vec3 rawNormal = glm::cross(pointB - pointA, pointC - pointA);
+    const float length = glm::length(rawNormal);
+    if (length < 1e-10f)
+        return face; // degenerate triangle, keep distance at max so it is never picked
+
+    face.normal = rawNormal / length;
+    face.distance = glm::dot(face.normal, pointA);
+    if (face.distance < 0.0f)
     {
-        f.n = -f.n;
-        f.d = -f.d;
-        std::swap(f.i[1], f.i[2]);
+        // Make the normal point away from the origin
+        face.normal = -face.normal;
+        face.distance = -face.distance;
+        std::swap(face.vertexIndices[1], face.vertexIndices[2]);
     }
-    return f;
+    return face;
 }
 
-Contact makeContact(const std::vector<Vertex> &vs, const Face &f)
+Contact makeContact(const std::vector<Vertex> &vertices, const Face &face)
 {
-    const Vertex &v0 = vs[f.i[0]], &v1 = vs[f.i[1]], &v2 = vs[f.i[2]];
-    vec3 pt = f.n * f.d;
+    const Vertex &vertex0 = vertices[face.vertexIndices[0]];
+    const Vertex &vertex1 = vertices[face.vertexIndices[1]];
+    const Vertex &vertex2 = vertices[face.vertexIndices[2]];
 
-    vec3 e0 = v1.p - v0.p, e1 = v2.p - v0.p, e2 = pt - v0.p;
-    float d00 = glm::dot(e0, e0), d01 = glm::dot(e0, e1), d11 = glm::dot(e1, e1);
-    float d20 = glm::dot(e2, e0), d21 = glm::dot(e2, e1);
-    float denom = d00 * d11 - d01 * d01;
+    // Point on the face closest to the origin
+    const vec3 closestPoint = face.normal * face.distance;
 
-    float u = 1.0f, v = 0.0f, w = 0.0f;
-    if (std::abs(denom) > 1e-12f)
+    // Barycentric coordinates of closestPoint inside the triangle
+    const vec3 edge0 = vertex1.minkowskiDifferentPoint - vertex0.minkowskiDifferentPoint;
+    const vec3 edge1 = vertex2.minkowskiDifferentPoint - vertex0.minkowskiDifferentPoint;
+    const vec3 toClosest = closestPoint - vertex0.minkowskiDifferentPoint;
+
+    const float dot00 = glm::dot(edge0, edge0);
+    const float dot01 = glm::dot(edge0, edge1);
+    const float dot11 = glm::dot(edge1, edge1);
+    const float dotClosest0 = glm::dot(toClosest, edge0);
+    const float dotClosest1 = glm::dot(toClosest, edge1);
+    const float denominator = dot00 * dot11 - dot01 * dot01;
+
+    float weight0 = 1.0f, weight1 = 0.0f, weight2 = 0.0f;
+    if (std::abs(denominator) > 1e-12f)
     {
-        v = (d11 * d20 - d01 * d21) / denom;
-        w = (d00 * d21 - d01 * d20) / denom;
-        u = 1.0f - v - w;
+        weight1 = (dot11 * dotClosest0 - dot01 * dotClosest1) / denominator;
+        weight2 = (dot00 * dotClosest1 - dot01 * dotClosest0) / denominator;
+        weight0 = 1.0f - weight1 - weight2;
     }
-    return {u * v0.a + v * v1.a + w * v2.a, f.n, f.d};
+
+    // Apply the same weights to the points on shape A to get the real contact point
+    const vec3 contactPoint =
+        weight0 * vertex0.singlePointShapeA + weight1 * vertex1.singlePointShapeA + weight2 * vertex2.singlePointShapeA;
+
+    return {contactPoint, face.normal, face.distance};
 }
 
-bool epa(const WorldCollider &A, const WorldCollider &B, const Simplex &s, Contact &out)
+const Face &findClosestFace(const std::vector<Face> &faces)
 {
-    std::vector<Vertex> vs(s.v.begin(), s.v.end());
-    std::vector<Face> faces = {makeFace(vs, 0, 1, 2), makeFace(vs, 0, 3, 1), makeFace(vs, 0, 2, 3),
-                               makeFace(vs, 1, 3, 2)};
+    return *std::min_element(faces.begin(), faces.end(),
+                             [](const Face &lhs, const Face &rhs) { return lhs.distance < rhs.distance; });
+}
 
-    for (int iter = 0; iter < 64; ++iter)
+bool epa(const WorldCollider &colliderA, const WorldCollider &colliderB, const Simplex &simplex, Contact &outContact)
+{
+    std::vector<Vertex> vertices(simplex.vertices.begin(), simplex.vertices.end());
+    std::vector<Face> faces = {makeFace(vertices, 0, 1, 2), makeFace(vertices, 0, 3, 1), makeFace(vertices, 0, 2, 3),
+                               makeFace(vertices, 1, 3, 2)};
+
+    for (int iteration = 0; iteration < 64; ++iteration)
     {
-        Face closest =
-            *std::min_element(faces.begin(), faces.end(), [](const Face &x, const Face &y) { return x.d < y.d; });
+        const Face closestFace = findClosestFace(faces);
 
-        Vertex sp = minkowski(A, B, closest.n);
-        if (glm::dot(closest.n, sp.p) - closest.d < 1e-3f)
+        const Vertex supportVertex = minkowski(colliderA, colliderB, closestFace.normal);
+
+        // Can't expand further: the closest face is on the boundary
+        if (glm::dot(closestFace.normal, supportVertex.minkowskiDifferentPoint) - closestFace.distance < 1e-3f)
         {
-            out = makeContact(vs, closest);
+            outContact = makeContact(vertices, closestFace);
             return true;
         }
 
-        std::vector<std::pair<int, int>> edges;
-        auto addEdge = [&](int a, int b) {
-            auto it = std::find(edges.begin(), edges.end(), std::make_pair(b, a));
-            if (it != edges.end())
-                edges.erase(it);
+        // Remove every face that can see the new point and collect the hole's boundary edges
+        std::vector<std::pair<int, int>> horizonEdges;
+        auto addEdge = [&](int from, int to) {
+            auto reversed = std::find(horizonEdges.begin(), horizonEdges.end(), std::make_pair(to, from));
+            if (reversed != horizonEdges.end())
+                horizonEdges.erase(reversed); // shared by two removed faces, so it is interior
             else
-                edges.emplace_back(a, b);
+                horizonEdges.emplace_back(from, to);
         };
-        for (size_t k = 0; k < faces.size();)
+
+        for (size_t faceIndex = 0; faceIndex < faces.size();)
         {
-            const Face &f = faces[k];
-            if (glm::dot(f.n, sp.p - vs[f.i[0]].p) > 1e-6f)
+            const Face &face = faces[faceIndex];
+            const vec3 &facePoint = vertices[face.vertexIndices[0]].minkowskiDifferentPoint;
+
+            if (glm::dot(face.normal, supportVertex.minkowskiDifferentPoint - facePoint) > 1e-6f)
             {
-                addEdge(f.i[0], f.i[1]);
-                addEdge(f.i[1], f.i[2]);
-                addEdge(f.i[2], f.i[0]);
-                faces[k] = faces.back();
+                addEdge(face.vertexIndices[0], face.vertexIndices[1]);
+                addEdge(face.vertexIndices[1], face.vertexIndices[2]);
+                addEdge(face.vertexIndices[2], face.vertexIndices[0]);
+                faces[faceIndex] = faces.back();
                 faces.pop_back();
             }
             else
-                ++k;
+                ++faceIndex;
         }
 
-        int newIndex = (int)vs.size();
-        vs.push_back(sp);
-        for (auto &e : edges)
-            faces.push_back(makeFace(vs, e.first, e.second, newIndex));
+        // Patch the hole by connecting the boundary edges to the new vertex
+        const int newVertexIndex = (int)vertices.size();
+        vertices.push_back(supportVertex);
+        for (const auto &edge : horizonEdges)
+            faces.push_back(makeFace(vertices, edge.first, edge.second, newVertexIndex));
     }
 
-    Face best = *std::min_element(faces.begin(), faces.end(), [](const Face &x, const Face &y) { return x.d < y.d; });
-    out = makeContact(vs, best);
+    // Out of iterations: use the best face found so far
+    outContact = makeContact(vertices, findClosestFace(faces));
     return true;
 }
 } // namespace
 
-bool collide(const WorldCollider &a, const WorldCollider &b, Contact &out)
+bool collide(const WorldCollider &colliderA, const WorldCollider &colliderB, Contact &outContact)
 {
-    Simplex s;
-    return gjk(a, b, s) && epa(a, b, s, out);
+    Simplex simplex;
+    return gjk(colliderA, colliderB, simplex) && epa(colliderA, colliderB, simplex, outContact);
 }

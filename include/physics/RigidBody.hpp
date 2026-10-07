@@ -32,7 +32,7 @@ struct RigidBody
 
     void computeMassProperties(float mass)
     {
-        invMass = mass > 0.0f ? 1.0f / mass : 0.0f;
+        invMass = mass;
         invInertiaLocal = glm::mat3(0.0f);
         if (isStatic() || parts.empty())
             return;
