@@ -68,10 +68,12 @@ inline std::vector<ColliderPart> makeColliderParts(const Shape &s)
 
     switch (s.getType())
     {
-    case ShapeType::Sphere: {
-        const float radius = static_cast<const Sphere &>(s).getRadius();
-        return {makePart(std::make_shared<SphereCollider>(radius * scale.x))};
-    }
+        /*
+            case ShapeType::Sphere: {
+                const float radius = static_cast<const Sphere &>(s).getRadius();
+                return {makePart(std::make_shared<SphereCollider>(radius * scale.x))};
+            }
+        */
 
     case ShapeType::Cube:
         return {makePart(std::make_shared<BoxCollider>(kCubeMeshHalfExtent * scale))};

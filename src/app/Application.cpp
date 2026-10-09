@@ -208,7 +208,7 @@ void Application::onViewportClicked(const glm::vec3 &worldPoint)
     }
     else if (mode == PlacementMode::Sphere)
     {
-        scene.addSphereAt("Sphere", worldPoint, kDefaultColor, 2.0f, 10);
+        scene.addSphereAt("Sphere", worldPoint, kDefaultColor, 2.0f, 22);
         log << "Added Sphere at (" << worldPoint.x << ", " << worldPoint.y << ", " << worldPoint.z << ")\n";
     }
 

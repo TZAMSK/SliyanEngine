@@ -231,13 +231,10 @@ void drawPhysicsTab(Shape *shape, PhysicsSystem &physicsSystem)
 
     bool hasPhysics = shape->hasPhysicsAdded();
 
-    if (!hasPhysics)
-    {
-        ImGui::Checkbox("Static (immovable)", &isStatic);
-        ImGui::BeginDisabled(isStatic);
-        ImGui::DragFloat("Mass", &mass, 0.05f, 0.01f, 1000.0f);
-        ImGui::EndDisabled();
-    }
+    ImGui::Checkbox("Static (immovable)", &isStatic);
+    ImGui::BeginDisabled(isStatic);
+    ImGui::DragFloat("Mass", &mass, 0.05f, 0.01f, 1000.0f);
+    ImGui::EndDisabled();
 
     if (ImGui::Checkbox("Add to Physics World", &hasPhysics))
     {
