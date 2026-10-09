@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-static constexpr float kFixedDt = 1.0f / 60.0f;
+static constexpr float kFixedDt = 1.0f / 240.0f;
 static constexpr float kMaxFrameTime = 0.25f;
 
 void PhysicsSystem::rebuildCollider(Entry &e)
@@ -58,12 +58,31 @@ void PhysicsSystem::syncFromShapes()
 
 void PhysicsSystem::update(float frameTime)
 {
-    m_Accumulator += std::min(frameTime, kMaxFrameTime);
 
-    while (m_Accumulator >= kFixedDt)
+    switch (m_TimeStepPattern)
     {
-        m_World.step(kFixedDt);
-        m_Accumulator -= kFixedDt;
+    case TimeStepPattern::SubStepping: {
+        size_t constexpr steps{8};
+        float const sub_dt{frameTime / static_cast<float>(steps)};
+
+        for (size_t i{steps}; i--;)
+        {
+            m_World.step(sub_dt);
+        }
+        break;
+    }
+
+    case TimeStepPattern::FixedDt: {
+        m_Accumulator += std::min(frameTime, kMaxFrameTime);
+
+        while (m_Accumulator >= kFixedDt)
+        {
+            m_World.step(kFixedDt);
+            m_Accumulator -= kFixedDt;
+        }
+
+        break;
+    }
     }
 
     for (auto &e : m_Entries)
@@ -73,4 +92,14 @@ void PhysicsSystem::update(float frameTime)
         e->shape->setPosition(e->body.position);
         e->shape->setRotation(glm::degrees(glm::eulerAngles(e->body.orientation)));
     }
+}
+
+TimeStepPattern &PhysicsSystem::getTimeStepPattern()
+{
+    return m_TimeStepPattern;
+}
+
+void PhysicsSystem::setTimeStepPattern(TimeStepPattern timeStepPattern)
+{
+    m_TimeStepPattern = timeStepPattern;
 }

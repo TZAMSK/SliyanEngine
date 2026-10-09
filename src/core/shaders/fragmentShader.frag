@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec3 vColor;
+in vec4 vColor;
 in vec3 vWorldPos;
 in vec4 vLightSpacePos;
 
@@ -48,14 +48,14 @@ float calculateShadow(vec4 lightSpacePos, float bias)
 
 void main()
 {
-    vec3 color = vColor;
+    vec4 color = vColor;
 
     if (isSelected == 1 || isHovered == 1)
-        color = mix(color, vec3(1.0, 0.72, 0.25), 0.05);
+        color = mix(color, vec4(1.0, 0.72, 0.25, 1.0), 0.05);
 
     if (useLighting == 0)
     {
-        outColor = vec4(color, 1.0);
+        outColor = color;
         outObjectID = objectID;
         return;
     }
@@ -70,6 +70,6 @@ void main()
 
     float lighting = AMBIENT + (1.0 - AMBIENT) * diff * (1.0 - shadow);
 
-    outColor = vec4(color * lighting, 1.0);
+    outColor = vec4(color.rgb * lighting, color.a);
     outObjectID = objectID;
 }

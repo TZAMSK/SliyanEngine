@@ -4,6 +4,7 @@
 #include "gui/GuiLayout.hpp"
 #include "scene/commands/CommandId.hpp"
 #include "app/Settings.hpp"
+#include "scene/PhysicsSystem.hpp"
 
 #include "imgui.h"
 
@@ -77,6 +78,18 @@ void drawToolbarPanel(Application &app)
         if (app.isSimulating())
             app.getPhysicsSystem().syncFromShapes();
     }
+
+    ImGui::SameLine();
+
+    static int mode = static_cast<int>(app.getPhysicsSystem().getTimeStepPattern());
+
+    bool changed = false;
+    changed |= ImGui::RadioButton("Fixed dt", &mode, static_cast<int>(TimeStepPattern::FixedDt));
+    ImGui::SameLine();
+    changed |= ImGui::RadioButton("Sub stepping", &mode, static_cast<int>(TimeStepPattern::SubStepping));
+
+    if (changed)
+        app.getPhysicsSystem().setTimeStepPattern(static_cast<TimeStepPattern>(mode));
 
     ImGui::End();
 }

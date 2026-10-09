@@ -6,6 +6,12 @@
 
 #include <memory>
 
+enum class TimeStepPattern
+{
+    FixedDt,
+    SubStepping
+};
+
 class PhysicsSystem
 {
   public:
@@ -13,6 +19,8 @@ class PhysicsSystem
     void remove(Shape *shape);
     void update(float frameTime);
     void syncFromShapes();
+    TimeStepPattern &getTimeStepPattern();
+    void setTimeStepPattern(TimeStepPattern timeStampPattern);
 
   private:
     struct Entry
@@ -27,4 +35,5 @@ class PhysicsSystem
     PhysicsWorld m_World;
     std::vector<std::unique_ptr<Entry>> m_Entries;
     float m_Accumulator = 0.0f;
+    TimeStepPattern m_TimeStepPattern = TimeStepPattern::SubStepping;
 };

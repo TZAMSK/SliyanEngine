@@ -180,6 +180,9 @@ void ViewportRenderer::render(Application &app)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glStencilMask(0xFF);
 
     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -220,7 +223,7 @@ void ViewportRenderer::render(Application &app)
 
     // Ground: lit, receives shadows
     glUniform1i(glGetUniformLocation(shader.id(), "useVertexColor"), 0);
-    glUniform3f(glGetUniformLocation(shader.id(), "shapeColor"), 0.28f, 0.28f, 0.30f);
+    glUniform4f(glGetUniformLocation(shader.id(), "shapeColor"), 0.28f, 0.28f, 0.30f, 1.0f);
     glUniform1i(glGetUniformLocation(shader.id(), "useLighting"), 1);
     gridRenderer.drawGround();
 
@@ -248,7 +251,7 @@ void ViewportRenderer::render(Application &app)
         glUniform1ui(glGetUniformLocation(shader.id(), "objectID"), shape.getId());
         glUniform1i(glGetUniformLocation(shader.id(), "isHovered"), hovered ? 1 : 0);
         glUniform1i(glGetUniformLocation(shader.id(), "isSelected"), selected ? 1 : 0);
-        glUniform3f(glGetUniformLocation(shader.id(), "shapeColor"), c.r, c.g, c.b);
+        glUniform4f(glGetUniformLocation(shader.id(), "shapeColor"), c.r, c.g, c.b, c.a);
 
         const GLuint vao = vaoForShape(shape);
         if (vao == 0)
