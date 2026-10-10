@@ -5,6 +5,7 @@
 #include "scene/shapes/2d/Circle.hpp"
 #include "scene/shapes/3d/Cube.hpp"
 #include "scene/shapes/3d/Sphere.hpp"
+#include "scene/shapes/ShapeFactory.hpp"
 
 #include <algorithm>
 
@@ -35,29 +36,29 @@ int Scene::getShapeCount() const
 
 void Scene::addTriangleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
 {
-    m_Shapes.push_back(std::make_unique<Triangle>(name, position, color));
+    m_Shapes.push_back(createShape<Triangle>(name, position, color));
 }
 
 void Scene::addRectangleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
 {
-    m_Shapes.push_back(std::make_unique<Rectangle>(name, position, color));
+    m_Shapes.push_back(createShape<Rectangle>(name, position, color));
 }
 
 void Scene::addCircleAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
                         const int &segments)
 {
-    m_Shapes.push_back(std::make_unique<Circle>(name, position, color, radius, segments));
+    m_Shapes.push_back(createShape<Circle>(name, position, color, radius, segments));
 }
 
 void Scene::addCubeAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color)
 {
-    m_Shapes.push_back(std::make_unique<Cube>(name, position, color));
+    m_Shapes.push_back(createShape<Cube>(name, position, color));
 }
 
 void Scene::addSphereAt(const std::string &name, const glm::vec3 &position, const glm::vec4 &color, const float &radius,
                         const int &segments)
 {
-    m_Shapes.push_back(std::make_unique<Sphere>(name, position, color, radius, segments));
+    m_Shapes.push_back(createShape<Sphere>(name, position, color, radius, segments));
 }
 
 void Scene::removeShape(Shape *shape)

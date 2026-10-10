@@ -35,9 +35,10 @@ class Shape
 
     const glm::vec4 &getColor() const;
 
-    const float *getVertexData() const;
-    size_t getFloatCount() const;
+    const glm::vec3 *getVertexData() const;
     size_t getVertexCount() const;
+    float calculateVolume();
+    float getVolume();
 
     std::vector<Shape *> &getChidren();
     const std::vector<Shape *> &getChildren() const;
@@ -55,6 +56,7 @@ class Shape
     void setPosition(const glm::vec3 &position);
     void setRotation(const glm::vec3 &rotation);
     void setScale(const glm::vec3 &scale);
+    void setVolume(const float volume);
 
     void setColor(const glm::vec4 &color);
 
@@ -66,6 +68,7 @@ class Shape
     void setPhysicsAdded(bool hasPhysics);
 
     // Render
+    void updateMesh();
     virtual void rebuildMesh() = 0;
     void uploadToGpu();
     void destroyGpuResources();
@@ -84,8 +87,9 @@ class Shape
     glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
     glm::vec3 m_Rotation = {0.0f, 0.0f, 0.0f};
     glm::vec3 m_Scale = {1.0f, 1.0f, 1.0f};
+    float m_Volume = 0.0f;
 
-    std::vector<float> m_Verts;
+    std::vector<glm::vec3> m_Verts;
 
     GLuint m_Vao = 0;
     GLuint m_Vbo = 0;

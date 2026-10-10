@@ -12,6 +12,10 @@ struct RigidBody
     glm::vec3 velocity{0.0f};
     glm::vec3 angularVelocity{0.0f};
     glm::vec3 force{0.0f};
+    float volume = 0.0f;
+    // drag coefficient
+    float dragCoefficience = 0.0f;
+    float crossSection = 0.0f;
 
     float invMass = 1.0f;
     float restitution = 0.4f;

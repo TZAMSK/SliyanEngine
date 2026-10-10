@@ -31,6 +31,8 @@ class PhysicsSystem
     };
 
     static void rebuildCollider(Entry &e);
+    void fixedDtAccumulator(float frameTime);
+    void subStepping(float frameTime);
 
     PhysicsWorld m_World;
     std::vector<std::unique_ptr<Entry>> m_Entries;

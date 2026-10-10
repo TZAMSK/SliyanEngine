@@ -21,23 +21,22 @@ inline ColliderPart makePart(std::shared_ptr<const Collider> c)
 
 inline std::vector<glm::vec3> extractVertexPositions(const Shape &s)
 {
-    const float *data = s.getVertexData();
+    const glm::vec3 *data = s.getVertexData();
     const size_t count = s.getVertexCount();
     if (!data || count == 0)
         return {};
 
-    const size_t stride = s.getFloatCount() / count;
-
     std::vector<glm::vec3> pts;
     pts.reserve(count);
     for (size_t i = 0; i < count; ++i)
-        pts.emplace_back(data[i * stride], data[i * stride + 1], data[i * stride + 2]);
+        pts.emplace_back(data[i]);
 
     auto less = [](const glm::vec3 &a, const glm::vec3 &b) {
         return a.x != b.x ? a.x < b.x : a.y != b.y ? a.y < b.y : a.z < b.z;
     };
     std::sort(pts.begin(), pts.end(), less);
     pts.erase(std::unique(pts.begin(), pts.end()), pts.end());
+
     return pts;
 }
 
