@@ -86,8 +86,11 @@ void PhysicsWorld::integrateVelocities(float dt)
     {
         if (b->isStatic())
             continue;
-        b->velocity += (gravity + b->force * b->invMass) * dt;
-        b->force = glm::vec3(0);
+
+        const float speed = glm::length(b->velocity);
+        const glm::vec3 drag = -0.5f * 1.2f * b->dragCoefficience * b->crossSection * speed * b->velocity;
+        b->velocity += (gravity + (b->force + drag) * b->invMass) * dt;
+        b->force = glm::vec3(0.0f);
     }
 }
 

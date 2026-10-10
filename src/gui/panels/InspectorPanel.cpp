@@ -248,6 +248,8 @@ void drawPhysicsTab(Shape *shape, PhysicsSystem &physicsSystem)
             physicsSystem.remove(shape);
         }
     }
+
+    ImGui::Text("Volume %.3f", shape->getVolume());
 }
 
 void drawRelationsTab(Shape *shape)

@@ -73,19 +73,40 @@ const glm::vec4 &Shape::getColor() const
     return m_Color;
 }
 
-const float *Shape::getVertexData() const
+const glm::vec3 *Shape::getVertexData() const
 {
     return m_Verts.data();
 }
 
-size_t Shape::getFloatCount() const
+size_t Shape::getVertexCount() const
 {
     return m_Verts.size();
 }
 
-size_t Shape::getVertexCount() const
+float Shape::calculateVolume()
 {
-    return getFloatCount() / 3;
+    const size_t vertices = getVertexCount();
+
+    if (vertices < 3 || vertices % 3 != 0)
+        return 0.0f;
+
+    float volume = 0.0f;
+
+    for (size_t i = 0; i < vertices; i += 3)
+    {
+        const glm::vec3 &a = m_Verts[i];
+        const glm::vec3 &b = m_Verts[i + 1];
+        const glm::vec3 &c = m_Verts[i + 2];
+
+        volume += glm::dot(a, glm::cross(b, c));
+    }
+
+    return std::abs(volume) / 6.0f;
+}
+
+float Shape::getVolume()
+{
+    return m_Volume;
 }
 
 std::vector<Shape *> &Shape::getChidren()
@@ -164,6 +185,11 @@ void Shape::setScale(const glm::vec3 &scale)
     }
 }
 
+void Shape::setVolume(const float volume)
+{
+    m_Volume = volume;
+}
+
 void Shape::setColor(const glm::vec4 &color)
 {
     m_Color = color;
@@ -204,6 +230,13 @@ void Shape::setPhysicsAdded(bool hasPhysics)
     m_HasPhysicsAdded = hasPhysics;
 }
 
+void Shape::updateMesh()
+{
+    rebuildMesh();
+    uploadToGpu();
+    setVolume(calculateVolume());
+}
+
 void Shape::uploadToGpu()
 {
     if (m_Vao == 0)
@@ -215,10 +248,10 @@ void Shape::uploadToGpu()
     glBindVertexArray(m_Vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_Vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_Verts.size() * sizeof(float)), m_Verts.data(),
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_Verts.size() * sizeof(glm::vec3)), m_Verts.data(),
                  GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), nullptr);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

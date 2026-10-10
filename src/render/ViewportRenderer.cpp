@@ -306,6 +306,7 @@ void ViewportRenderer::render(Application &app)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glDisable(GL_STENCIL_TEST);
+    glDisable(GL_BLEND);
     glBindVertexArray(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
