@@ -18,30 +18,30 @@ void applyDragProperties(RigidBody &body, const Shape &shape)
     switch (shape.getType())
     {
     case ShapeType::Triangle:
-        body.dragCoefficient = 1.2f;
+        body.dragCoefficience = 1.2f;
         body.crossSection = 0.5f * (2.0f * s.x) * (2.0f * s.y);
         break;
 
     case ShapeType::Rectangle:
-        body.dragCoefficient = 1.18f;
+        body.dragCoefficience = 1.18f;
         body.crossSection = (4.0f * s.x) * (2.0f * s.y);
         break;
 
     case ShapeType::Circle: {
         const float r = static_cast<const Circle &>(shape).getRadius() * s.x;
-        body.dragCoefficient = 1.17f;
+        body.dragCoefficience = 1.17f;
         body.crossSection = glm::pi<float>() * r * r;
         break;
     }
 
     case ShapeType::Cube:
-        body.dragCoefficient = 1.05f;
+        body.dragCoefficience = 1.05f;
         body.crossSection = (2.0f * s.x) * (2.0f * s.y);
         break;
 
     case ShapeType::Sphere: {
         const float r = static_cast<const Sphere &>(shape).getRadius() * s.x;
-        body.dragCoefficient = 0.47f;
+        body.dragCoefficience = 0.47f;
         body.crossSection = glm::pi<float>() * r * r;
         break;
     }
