@@ -1,5 +1,7 @@
 # SliyanEngine
 
+![cover](cover.png)
+
 A 3D editor and physics simulation engine built with **C++20 and OpenGL**, inspired by Blender, Houdini, and modern game engines.
 
 SliyanEngine provides an interactive environment for creating, selecting, transforming, and organizing 2D and 3D objects, with a foundation for real-time physics simulations.
